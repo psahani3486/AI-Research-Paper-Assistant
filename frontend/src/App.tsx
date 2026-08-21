@@ -75,9 +75,14 @@ export default function App() {
     setError(null);
     try {
       await checkSystemHealth();
-      const stats = await getVectorDBStats();
-      setVectorStats(stats);
+      try {
+        const stats = await getVectorDBStats();
+        setVectorStats(stats);
+      } catch (e) {
+        console.warn('Vector DB stats warning:', e);
+      }
     } catch (err: unknown) {
+      console.error('Health check failed:', err);
       setError(err instanceof Error ? err.message : 'Backend offline');
     } finally {
       setLoading(false);
