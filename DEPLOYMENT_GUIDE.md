@@ -13,7 +13,7 @@ This document provides step-by-step instructions for deploying the **AI Research
    - **Name:** `ai-research-paper-assistant-backend`
    - **Root Directory:** `backend`
    - **Runtime:** `Python 3`
-   - **Build Command:** `pip install -r requirements.txt`
+   - **Build Command:** `pip install --no-cache-dir -r requirements.txt`
    - **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 5. Scroll down to **Environment Variables** and add:
    - `GROQ_API_KEY`: `your_groq_api_key_here`
