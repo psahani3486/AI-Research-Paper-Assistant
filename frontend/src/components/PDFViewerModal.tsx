@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, FileText, Download, ExternalLink } from 'lucide-react';
+import { API_BASE_URL } from '../services/api';
 import type { Paper } from '../types';
 
 interface PDFViewerModalProps {
@@ -8,7 +9,7 @@ interface PDFViewerModalProps {
 }
 
 export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({ paper, onClose }) => {
-  const pdfUrl = `http://localhost:8000/papers/${paper.id}/pdf`;
+  const pdfUrl = `${API_BASE_URL}/papers/${paper.id}/pdf`;
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6">
