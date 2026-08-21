@@ -16,7 +16,7 @@ import type {
   VivaQAResponse 
 } from '../types';
 
-const rawUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const rawUrl = import.meta.env.VITE_API_BASE_URL || 'https://ai-research-paper-assistant-backend.onrender.com';
 export const API_BASE_URL = rawUrl.trim().replace(/\/+$/, '');
 
 export const apiClient = axios.create({
