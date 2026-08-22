@@ -222,7 +222,7 @@ export default function App() {
               <button
                 onClick={() => setShowApiModal(true)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-xs text-amber-300 transition-colors cursor-pointer"
-                title="Render backend is spinning up... Click to configure API settings"
+                title="Backend is connecting... Click to configure API settings"
               >
                 <span className="h-2 w-2 rounded-full bg-amber-400 animate-ping" />
                 <span>Waking ({retryAttempt}/5)...</span>

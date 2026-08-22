@@ -76,7 +76,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({ onClose, onS
             </div>
             <div>
               <h3 className="text-base font-bold text-white">Backend Connection Settings</h3>
-              <p className="text-xs text-slate-400">Configure or test your API endpoint for Vercel</p>
+              <p className="text-xs text-slate-400">Configure or test your API endpoint</p>
             </div>
           </div>
 
@@ -103,7 +103,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({ onClose, onS
                   type="text"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="https://your-backend.onrender.com"
+                  placeholder="http://localhost:8000"
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                 />
                 <LinkIcon className="h-4 w-4 text-slate-500 absolute left-3 top-3" />
@@ -118,7 +118,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({ onClose, onS
               </button>
             </div>
             <p className="text-[11px] text-slate-400">
-              Changes are saved locally in your browser so you don&apos;t need to re-deploy on Vercel.
+              Changes are saved locally in your browser.
             </p>
           </div>
 
@@ -143,21 +143,21 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({ onClose, onS
             </div>
           )}
 
-          {/* Vercel & Render Troubleshooting Guide */}
+          {/* Connection Troubleshooting Guide */}
           <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-3">
             <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
               <HelpCircle className="h-4 w-4 text-amber-400" />
-              Why is backend showing Offline on Vercel?
+              Why is backend showing Offline?
             </h4>
             <ul className="text-[11px] text-slate-400 space-y-1.5 list-disc pl-4 leading-relaxed">
               <li>
-                <strong className="text-slate-300">Render Free Tier Sleeping:</strong> Free Render backend instances go to sleep after 15 minutes. It takes ~30 to 60 seconds for Render to spin up. Click <strong>Test</strong> or refresh to wait for it.
+                <strong className="text-slate-300">Backend Server Not Running:</strong> Ensure your backend server is active (e.g. running uvicorn).
               </li>
               <li>
-                <strong className="text-slate-300">Vercel Environment Variable:</strong> Ensure <code className="bg-slate-900 px-1 py-0.5 rounded text-indigo-300">VITE_API_BASE_URL</code> is added in Vercel Project Settings with your full Render URL (<code className="bg-slate-900 px-1 py-0.5 rounded text-slate-300">https://...</code>).
+                <strong className="text-slate-300">Incorrect Base URL:</strong> Verify that your API URL matches the host and port of your backend.
               </li>
               <li>
-                <strong className="text-slate-300">HTTP vs HTTPS:</strong> Browsers block insecure <code className="bg-slate-900 px-1 py-0.5 rounded text-amber-300">http://</code> requests from Vercel (<code className="bg-slate-900 px-1 py-0.5 rounded text-slate-300">https://</code>). Ensure your backend URL starts with <code className="bg-slate-900 px-1 py-0.5 rounded text-emerald-300">https://</code>.
+                <strong className="text-slate-300">Network / CORS:</strong> Ensure local firewalls or proxy settings allow frontend-to-backend requests.
               </li>
             </ul>
           </div>

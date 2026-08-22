@@ -16,14 +16,14 @@ import type {
   VivaQAResponse 
 } from '../types';
 
-const DEFAULT_URL = 'https://ai-research-paper-assistant-backend.onrender.com';
+const DEFAULT_URL = 'http://localhost:8000';
 
 export const sanitizeApiUrl = (url: string): string => {
   if (!url) return '';
   let cleaned = url.trim().replace(/^["']|["']$/g, '');
   if (!cleaned) return '';
   if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://') && !cleaned.startsWith('/')) {
-    cleaned = `https://${cleaned}`;
+    cleaned = `http://${cleaned}`;
   }
   return cleaned.replace(/\/+$/, '');
 };
@@ -74,7 +74,7 @@ export const checkSystemHealthWithRetry = async (
       onAttempt(attempt, maxAttempts);
     }
     try {
-      // 60-second timeout per attempt allows sleeping Render containers (~30-50s) to finish spinning up
+      // 60-second timeout per attempt allows backend server to respond
       const response = await apiClient.get<SystemHealth>('/health', { timeout: 60000 });
       return response.data;
     } catch (err) {
@@ -86,9 +86,9 @@ export const checkSystemHealthWithRetry = async (
     }
   }
 
-  // If a custom URL in localStorage failed, reset to default Render URL and try one last time
+  // If a custom URL in localStorage failed, reset to default URL and try one last time
   if (typeof window !== 'undefined' && localStorage.getItem('CUSTOM_API_BASE_URL')) {
-    console.warn('Custom API URL failed. Resetting to default Render backend URL...');
+    console.warn('Custom API URL failed. Resetting to default backend URL...');
     localStorage.removeItem('CUSTOM_API_BASE_URL');
     apiClient.defaults.baseURL = DEFAULT_URL;
     try {

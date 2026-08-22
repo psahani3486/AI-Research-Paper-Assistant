@@ -23,7 +23,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS for frontend communication (including Vercel subdomains)
+# Enable CORS for frontend communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
