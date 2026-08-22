@@ -59,30 +59,46 @@ export const setApiBaseUrl = (newUrl: string | null): string => {
 };
 
 export const checkSystemHealth = async (): Promise<SystemHealth> => {
-  const response = await apiClient.get<SystemHealth>('/health');
+  const response = await apiClient.get<SystemHealth>('/health', { timeout: 60000 });
   return response.data;
 };
 
 export const checkSystemHealthWithRetry = async (
   onAttempt?: (attempt: number, maxAttempts: number) => void,
-  maxAttempts = 5
+  maxAttempts = 3
 ): Promise<SystemHealth> => {
   let lastError: unknown = null;
+  
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (onAttempt) {
       onAttempt(attempt, maxAttempts);
     }
     try {
-      const response = await apiClient.get<SystemHealth>('/health', { timeout: 15000 });
+      // 60-second timeout per attempt allows sleeping Render containers (~30-50s) to finish spinning up
+      const response = await apiClient.get<SystemHealth>('/health', { timeout: 60000 });
       return response.data;
     } catch (err) {
       lastError = err;
       if (attempt < maxAttempts) {
-        const delay = Math.min(attempt * 2500, 8000);
+        const delay = Math.min(attempt * 3000, 10000);
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
+
+  // If a custom URL in localStorage failed, reset to default Render URL and try one last time
+  if (typeof window !== 'undefined' && localStorage.getItem('CUSTOM_API_BASE_URL')) {
+    console.warn('Custom API URL failed. Resetting to default Render backend URL...');
+    localStorage.removeItem('CUSTOM_API_BASE_URL');
+    apiClient.defaults.baseURL = DEFAULT_URL;
+    try {
+      const response = await apiClient.get<SystemHealth>('/health', { timeout: 60000 });
+      return response.data;
+    } catch (fallbackErr) {
+      lastError = fallbackErr;
+    }
+  }
+
   throw lastError;
 };
 

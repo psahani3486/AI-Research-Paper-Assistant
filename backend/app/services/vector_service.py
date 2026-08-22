@@ -4,21 +4,21 @@ Responsible for persisting chunk embeddings, texts, and page metadata into a loc
 Provides functions for indexing, metadata filtering, vector deletion, and Semantic Similarity Search (Top-K Retrieval).
 """
 import os
-import chromadb
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from app.config import settings
 from app.services.embedding_service import generate_single_embedding
 
-_CHROMA_CLIENT: chromadb.PersistentClient = None
+_CHROMA_CLIENT: Any = None
 DEFAULT_COLLECTION_NAME = "research_papers"
 
-def get_chroma_client() -> chromadb.PersistentClient:
+def get_chroma_client() -> Any:
     """
     Singleton loader for ChromaDB PersistentClient.
     Stores vector collection locally in data/chroma/
     """
     global _CHROMA_CLIENT
     if _CHROMA_CLIENT is None:
+        import chromadb
         persist_dir = settings.CHROMA_PERSIST_DIR
         os.makedirs(persist_dir, exist_ok=True)
         print(f"[ChromaDB Service] Initializing persistent client at: {persist_dir}")

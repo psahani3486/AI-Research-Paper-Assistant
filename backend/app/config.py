@@ -3,6 +3,12 @@ from pathlib import Path
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
+# Suppress heavy framework checks for fast startup
+os.environ["USE_TF"] = "0"
+os.environ["USE_FLAX"] = "0"
+os.environ["USE_TORCH"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 # Find the root directory (.env file location)
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 load_dotenv(ROOT_DIR / ".env")
