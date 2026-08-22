@@ -1,12 +1,13 @@
 """
-Enterprise Hybrid Retrieval Service (BM25 + Dense Vector Search + RRF Fusion)
+Enterprise Hybrid Retrieval Service (BM25 + Dense Vector Search + RRF Fusion + Cross-Encoder Reranker)
 Combines Sparse Lexical Keyword Retrieval (BM25) and Dense Semantic Vector Search (ChromaDB)
-using Reciprocal Rank Fusion (RRF) to ensure high precision and recall for academic papers.
+using Reciprocal Rank Fusion (RRF) and Cross-Encoder Re-scoring to ensure high precision and recall.
 """
 import re
 from typing import List, Dict, Optional
 from rank_bm25 import BM25Okapi
 from app.services.vector_service import search_similar_chunks
+from app.services.reranker_service import rerank_candidates
 from app.logger import logger
 
 def tokenize_text(text: str) -> List[str]:
@@ -112,13 +113,15 @@ def reciprocal_rank_fusion(
 def perform_hybrid_search(
     query_text: str,
     top_k: int = 5,
-    paper_id: Optional[str] = None
+    paper_id: Optional[str] = None,
+    enable_reranking: bool = True
 ) -> List[Dict]:
     """
     Executes Hybrid Search:
     1. Fetches candidate chunks via Dense Vector Search (ChromaDB)
     2. Fetches candidate chunks via BM25 Lexical Keyword Search
     3. Fuses candidates using Reciprocal Rank Fusion (RRF)
+    4. (Optional) Applies Cross-Encoder Reranking
     """
     logger.info(f"Executing Hybrid RAG Search for query: '{query_text[:60]}...' (paper_id: {paper_id})")
 
@@ -143,8 +146,11 @@ def perform_hybrid_search(
     fused_results = reciprocal_rank_fusion(
         vector_results=vector_candidates,
         bm25_results=bm25_candidates,
-        top_k=top_k
+        top_k=top_k * 2 if enable_reranking else top_k
     )
 
-    logger.info(f"Hybrid Search returned {len(fused_results)} fused candidate chunks.")
+    if enable_reranking and fused_results:
+        fused_results = rerank_candidates(query=query_text, candidates=fused_results, top_k=top_k)
+
+    logger.info(f"Hybrid Search returned {len(fused_results)} fused & reranked candidate chunks.")
     return fused_results

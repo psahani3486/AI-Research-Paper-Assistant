@@ -13,7 +13,7 @@ def get_db_connection():
 
 def init_db():
     """
-    Initializes SQLite database tables for paper metadata, chat history, and summaries.
+    Initializes SQLite database tables for paper metadata, chat history, summaries, and domain categories.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -28,9 +28,16 @@ def init_db():
         pages INTEGER DEFAULT 0,
         chunks_count INTEGER DEFAULT 0,
         uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        status TEXT DEFAULT 'uploaded'
+        status TEXT DEFAULT 'uploaded',
+        category TEXT DEFAULT 'General'
     )
     """)
+
+    # Migration check for category column
+    try:
+        cursor.execute("ALTER TABLE papers ADD COLUMN category TEXT DEFAULT 'General'")
+    except Exception:
+        pass
 
     # Create chat_messages table
     cursor.execute("""
@@ -45,13 +52,12 @@ def init_db():
     )
     """)
 
-    # Migration check for existing chat_messages table
     try:
         cursor.execute("ALTER TABLE chat_messages ADD COLUMN sources_json TEXT")
     except Exception:
         pass
 
-    # Create paper_summaries table (Stage 11)
+    # Create paper_summaries table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS paper_summaries (
         paper_id TEXT PRIMARY KEY,
@@ -72,14 +78,14 @@ def init_db():
 
 # Paper CRUD helpers
 
-def insert_paper(paper_id: str, title: str, filename: str, file_path: str, pages: int) -> Dict:
+def insert_paper(paper_id: str, title: str, filename: str, file_path: str, pages: int, category: str = "General") -> Dict:
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-    INSERT INTO papers (id, title, filename, file_path, pages, chunks_count, status)
-    VALUES (?, ?, ?, ?, ?, 0, 'uploaded')
-    """, (paper_id, title, filename, file_path, pages))
+    INSERT INTO papers (id, title, filename, file_path, pages, chunks_count, status, category)
+    VALUES (?, ?, ?, ?, ?, 0, 'uploaded', ?)
+    """, (paper_id, title, filename, file_path, pages, category))
 
     conn.commit()
     
@@ -88,10 +94,13 @@ def insert_paper(paper_id: str, title: str, filename: str, file_path: str, pages
     conn.close()
     return dict(row) if row else {}
 
-def get_all_papers_from_db() -> List[Dict]:
+def get_all_papers_from_db(category: Optional[str] = None) -> List[Dict]:
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM papers ORDER BY uploaded_at DESC")
+    if category and category.lower() != "all":
+        cursor.execute("SELECT * FROM papers WHERE LOWER(category) = LOWER(?) ORDER BY uploaded_at DESC", (category,))
+    else:
+        cursor.execute("SELECT * FROM papers ORDER BY uploaded_at DESC")
     rows = cursor.fetchall()
     conn.close()
     return [dict(row) for row in rows]
@@ -103,6 +112,15 @@ def get_paper_by_id_from_db(paper_id: str) -> Optional[Dict]:
     row = cursor.fetchone()
     conn.close()
     return dict(row) if row else None
+
+def update_paper_category(paper_id: str, category: str) -> bool:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE papers SET category = ? WHERE id = ?", (category, paper_id))
+    conn.commit()
+    updated = cursor.rowcount > 0
+    conn.close()
+    return updated
 
 def update_paper_chunks_count(paper_id: str, chunks_count: int, status: str = "processed") -> bool:
     conn = get_db_connection()
@@ -126,7 +144,7 @@ def delete_paper_from_db(paper_id: str) -> bool:
     conn.close()
     return deleted
 
-# Chat Memory CRUD Helpers (Stage 10)
+# Chat Memory CRUD Helpers
 
 def insert_chat_message(
     paper_id: str, 
@@ -196,12 +214,9 @@ def clear_chat_history_from_db(paper_id: str) -> bool:
     conn.close()
     return deleted
 
-# Paper Summaries CRUD Helpers (Stage 11)
+# Paper Summaries CRUD Helpers
 
 def insert_or_update_summary(paper_id: str, summary_dict: Dict) -> Dict:
-    """
-    Inserts or updates structured 7-pillar summary for a paper in paper_summaries table.
-    """
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -228,9 +243,6 @@ def insert_or_update_summary(paper_id: str, summary_dict: Dict) -> Dict:
     return dict(row) if row else {}
 
 def get_summary_by_paper_id(paper_id: str) -> Optional[Dict]:
-    """
-    Fetches cached 7-pillar summary for a paper from paper_summaries table.
-    """
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM paper_summaries WHERE paper_id = ?", (paper_id,))

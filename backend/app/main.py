@@ -14,6 +14,7 @@ from app.database.database import init_db
 from app.api.papers import router as papers_router
 from app.api.chat import router as chat_router
 from app.api.comparison import router as comparison_router
+from app.api.academic import router as academic_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,7 +27,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=f"{settings.APP_NAME} (Enterprise Edition)",
     version=settings.APP_VERSION,
-    description="Enterprise-Grade RAG Architecture with Hybrid Search (BM25 + Vector), Real-time SSE Token Streaming, and RAG Triad Observability.",
+    description="Enterprise-Grade RAG Architecture with Hybrid Search (BM25 + Vector + Cross-Encoder), Autonomous Literature Reviews, Audio Podcast Briefings, and Multi-Format Exports.",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc"
@@ -75,12 +76,14 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(papers_router)
 app.include_router(chat_router)
 app.include_router(comparison_router)
+app.include_router(academic_router)
 
 # Versioned API Router Hierarchy (/api/v1)
 v1_router = APIRouter(prefix="/api/v1")
 v1_router.include_router(papers_router)
 v1_router.include_router(chat_router)
 v1_router.include_router(comparison_router)
+v1_router.include_router(academic_router)
 
 @v1_router.get("/health")
 @app.get("/health")
@@ -93,6 +96,7 @@ def health_check():
         "groq_model": settings.GROQ_MODEL,
         "embedding_model": settings.EMBEDDING_MODEL_NAME,
         "hybrid_retrieval": True,
+        "cross_encoder_reranking": True,
         "chunk_size": settings.CHUNK_SIZE,
         "chunk_overlap": settings.CHUNK_OVERLAP,
         "top_k": settings.TOP_K_RETRIEVAL
@@ -107,6 +111,6 @@ def read_root():
         "version": settings.APP_VERSION,
         "edition": "Enterprise AI Engineer Edition",
         "status": "online",
-        "retrieval_architecture": "Hybrid BM25 + Dense Vector Search (RRF)",
+        "retrieval_architecture": "Hybrid BM25 + Dense Vector Search (RRF + Cross-Encoder Reranker)",
         "docs_url": "/docs"
     }

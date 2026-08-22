@@ -7,6 +7,7 @@ export interface Paper {
   chunks_count: number;
   uploaded_at: string;
   status: 'uploaded' | 'processing' | 'chunked' | 'embedded' | 'indexed' | 'failed';
+  category?: string;
 }
 
 export interface PageText {
@@ -207,6 +208,41 @@ export interface VivaQAResponse {
   questions: VivaQAItemSchema[];
 }
 
+export interface LiteratureReviewResponse {
+  paper_count: number;
+  analyzed_papers: string[];
+  literature_review_markdown: string;
+  bibtex_citations: string;
+  latency_ms: number;
+}
+
+export interface AudioBriefingTurn {
+  speaker: string;
+  text: string;
+}
+
+export interface AudioBriefingResponse {
+  paper_id: string;
+  paper_title: string;
+  total_turns: number;
+  script_turns: AudioBriefingTurn[];
+  latency_ms: number;
+  audio_format: string;
+}
+
+export interface ProposalCriticResponse {
+  proposal_title: string;
+  critique_markdown: string;
+  referenced_sources_count: number;
+  latency_ms: number;
+}
+
+export interface ExportResponse {
+  title: string;
+  export_format: string;
+  exported_content: string;
+}
+
 export interface ChatMessage {
   id?: number;
   paper_id: string;
@@ -233,6 +269,7 @@ export interface SystemHealth {
   groq_model: string;
   embedding_model: string;
   hybrid_retrieval?: boolean;
+  cross_encoder_reranking?: boolean;
   chunk_size: number;
   chunk_overlap: number;
   top_k: number;

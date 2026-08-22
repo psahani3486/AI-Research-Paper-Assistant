@@ -13,7 +13,11 @@ import type {
   ComparisonMatrixResponse,
   ResearchGapResponse,
   RAGTriadEvalResponse,
-  VivaQAResponse 
+  VivaQAResponse,
+  LiteratureReviewResponse,
+  AudioBriefingResponse,
+  ProposalCriticResponse,
+  ExportResponse
 } from '../types';
 
 const DEFAULT_URL = 'http://localhost:8000';
@@ -313,5 +317,54 @@ export const comparePapers = async (paperIds: string[]): Promise<ComparisonMatri
 // Stage 13 Research Gap Detection API calls
 export const detectResearchGaps = async (paperId: string): Promise<ResearchGapResponse> => {
   const response = await apiClient.post<ResearchGapResponse>(`/papers/${paperId}/gaps`);
+  return response.data;
+};
+
+// Academic AI Agent & Tools API calls
+export const generateLiteratureReview = async (paperIds?: string[]): Promise<LiteratureReviewResponse> => {
+  const response = await apiClient.post<LiteratureReviewResponse>('/api/v1/academic/literature-review', {
+    paper_ids: paperIds || []
+  });
+  return response.data;
+};
+
+export const getAudioBriefing = async (paperId: string): Promise<AudioBriefingResponse> => {
+  const response = await apiClient.get<AudioBriefingResponse>(`/api/v1/academic/audio-briefing/${paperId}`);
+  return response.data;
+};
+
+export const runProposalCritic = async (
+  proposalTitle: string,
+  proposalText: string,
+  targetPaperId?: string
+): Promise<ProposalCriticResponse> => {
+  const response = await apiClient.post<ProposalCriticResponse>('/api/v1/academic/proposal-critic', {
+    proposal_title: proposalTitle,
+    proposal_text: proposalText,
+    target_paper_id: targetPaperId
+  });
+  return response.data;
+};
+
+export const exportAcademicContent = async (
+  title: string,
+  contentMarkdown: string,
+  exportFormat: string = 'latex',
+  paperIds?: string[]
+): Promise<ExportResponse> => {
+  const response = await apiClient.post<ExportResponse>('/api/v1/academic/export', {
+    title,
+    content_markdown: contentMarkdown,
+    export_format: exportFormat,
+    paper_ids: paperIds
+  });
+  return response.data;
+};
+
+export const updatePaperCategory = async (paperId: string, category: string): Promise<{ message: string }> => {
+  const response = await apiClient.post<{ message: string }>('/api/v1/academic/category', {
+    paper_id: paperId,
+    category
+  });
   return response.data;
 };
