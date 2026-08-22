@@ -23,10 +23,11 @@ import {
   Compass,
   Filter,
   Download,
-  Award
+  Award,
+  Settings
 } from 'lucide-react';
 import { 
-  checkSystemHealth, 
+  checkSystemHealthWithRetry, 
   getPapers, 
   deletePaper, 
   indexPaperInChromaDB, 
@@ -47,11 +48,15 @@ import { PaperComparisonView } from './components/PaperComparisonView';
 import { ResearchGapView } from './components/ResearchGapView';
 import { PDFViewerModal } from './components/PDFViewerModal';
 import { EvaluationVivaView } from './components/EvaluationVivaView';
+import { ApiSettingsModal } from './components/ApiSettingsModal';
 import type { Paper } from './types';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [connectionState, setConnectionState] = useState<'online' | 'waking' | 'offline'>('waking');
+  const [retryAttempt, setRetryAttempt] = useState(1);
+  const [showApiModal, setShowApiModal] = useState(false);
   
   // Paper Library state
   const [papers, setPapers] = useState<Paper[]>([]);
@@ -73,8 +78,13 @@ export default function App() {
   const fetchHealth = async () => {
     setLoading(true);
     setError(null);
+    setConnectionState('waking');
+    setRetryAttempt(1);
     try {
-      await checkSystemHealth();
+      await checkSystemHealthWithRetry((attempt) => {
+        setRetryAttempt(attempt);
+      }, 5);
+      setConnectionState('online');
       try {
         const stats = await getVectorDBStats();
         setVectorStats(stats);
@@ -83,6 +93,7 @@ export default function App() {
       }
     } catch (err: unknown) {
       console.error('Health check failed:', err);
+      setConnectionState('offline');
       setError(err instanceof Error ? err.message : 'Backend offline');
     } finally {
       setLoading(false);
@@ -105,6 +116,15 @@ export default function App() {
     fetchHealth();
     fetchPapers();
   }, []);
+
+  useEffect(() => {
+    if (connectionState === 'offline') {
+      const timer = setInterval(() => {
+        fetchHealth();
+      }, 15000);
+      return () => clearInterval(timer);
+    }
+  }, [connectionState]);
 
   const handleUploadSuccess = (newPaper: Paper) => {
     setPapers((prev) => [newPaper, ...prev]);
@@ -185,26 +205,46 @@ export default function App() {
               onClick={() => { fetchHealth(); fetchPapers(); }} 
               disabled={loading}
               className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
-              title="Refresh"
+              title="Refresh connection"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
             </button>
 
-            {loading ? (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+            <button
+              onClick={() => setShowApiModal(true)}
+              className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
+              title="Configure API Base URL"
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+
+            {connectionState === 'waking' || loading ? (
+              <button
+                onClick={() => setShowApiModal(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-xs text-amber-300 transition-colors cursor-pointer"
+                title="Render backend is spinning up... Click to configure API settings"
+              >
                 <span className="h-2 w-2 rounded-full bg-amber-400 animate-ping" />
-                Connecting...
-              </div>
-            ) : error ? (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300">
+                <span>Waking ({retryAttempt}/5)...</span>
+              </button>
+            ) : connectionState === 'offline' || error ? (
+              <button 
+                onClick={() => setShowApiModal(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-xs text-rose-300 transition-colors cursor-pointer"
+                title="Backend Unreachable. Click to test or edit API URL"
+              >
                 <XCircle className="h-4 w-4 text-rose-400" />
-                Offline
-              </div>
+                <span>Offline</span>
+              </button>
             ) : (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300">
+              <button 
+                onClick={() => setShowApiModal(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs text-emerald-300 transition-colors cursor-pointer"
+                title="Backend Connected. Click for API settings"
+              >
                 <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                Online
-              </div>
+                <span>Online</span>
+              </button>
             )}
           </div>
         </div>
@@ -705,6 +745,17 @@ export default function App() {
 
 
       </main>
+
+      {/* API Settings Modal */}
+      {showApiModal && (
+        <ApiSettingsModal
+          onClose={() => setShowApiModal(false)}
+          onSaved={() => {
+            fetchHealth();
+            fetchPapers();
+          }}
+        />
+      )}
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 bg-slate-900/40 py-4 mt-8">

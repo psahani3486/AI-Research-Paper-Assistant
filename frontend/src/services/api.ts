@@ -16,16 +16,74 @@ import type {
   VivaQAResponse 
 } from '../types';
 
-const rawUrl = import.meta.env.VITE_API_BASE_URL || 'https://ai-research-paper-assistant-backend.onrender.com';
-export const API_BASE_URL = rawUrl.trim().replace(/\/+$/, '');
+const DEFAULT_URL = 'https://ai-research-paper-assistant-backend.onrender.com';
+
+export const sanitizeApiUrl = (url: string): string => {
+  if (!url) return '';
+  let cleaned = url.trim().replace(/^["']|["']$/g, '');
+  if (!cleaned) return '';
+  if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://') && !cleaned.startsWith('/')) {
+    cleaned = `https://${cleaned}`;
+  }
+  return cleaned.replace(/\/+$/, '');
+};
+
+export const getApiBaseUrl = (): string => {
+  const custom = typeof window !== 'undefined' ? localStorage.getItem('CUSTOM_API_BASE_URL') : null;
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  return sanitizeApiUrl(custom || envUrl || DEFAULT_URL);
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getApiBaseUrl(),
+  timeout: 60000,
 });
+
+apiClient.interceptors.request.use((config) => {
+  config.baseURL = getApiBaseUrl();
+  return config;
+});
+
+export const setApiBaseUrl = (newUrl: string | null): string => {
+  if (!newUrl || !newUrl.trim()) {
+    localStorage.removeItem('CUSTOM_API_BASE_URL');
+  } else {
+    const sanitized = sanitizeApiUrl(newUrl);
+    localStorage.setItem('CUSTOM_API_BASE_URL', sanitized);
+  }
+  const activeUrl = getApiBaseUrl();
+  apiClient.defaults.baseURL = activeUrl;
+  return activeUrl;
+};
 
 export const checkSystemHealth = async (): Promise<SystemHealth> => {
   const response = await apiClient.get<SystemHealth>('/health');
   return response.data;
+};
+
+export const checkSystemHealthWithRetry = async (
+  onAttempt?: (attempt: number, maxAttempts: number) => void,
+  maxAttempts = 5
+): Promise<SystemHealth> => {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (onAttempt) {
+      onAttempt(attempt, maxAttempts);
+    }
+    try {
+      const response = await apiClient.get<SystemHealth>('/health', { timeout: 15000 });
+      return response.data;
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxAttempts) {
+        const delay = Math.min(attempt * 2500, 8000);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+  throw lastError;
 };
 
 export const getRootStatus = async () => {
@@ -63,11 +121,11 @@ export const deletePaper = async (paperId: string): Promise<{ message: string; p
 
 // Stage 14 PDF & Export API calls
 export const getPaperPDFUrl = (paperId: string): string => {
-  return `${API_BASE_URL}/papers/${paperId}/pdf`;
+  return `${getApiBaseUrl()}/papers/${paperId}/pdf`;
 };
 
 export const downloadResearchDossier = (paperId: string): void => {
-  window.open(`${API_BASE_URL}/papers/${paperId}/export`, '_blank');
+  window.open(`${getApiBaseUrl()}/papers/${paperId}/export`, '_blank');
 };
 
 // Stage 15 RAG Triad Evaluation & Viva Q&A API calls
