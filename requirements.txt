@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pymupdf
+groq
+pydantic
+pydantic-settings
+python-dotenv
+python-multipart
+aiofiles
+requests
+rank-bm25
+httpx
