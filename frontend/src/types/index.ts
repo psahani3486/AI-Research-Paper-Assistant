@@ -70,6 +70,8 @@ export interface SearchResultItem {
   similarity_score: number;
   similarity_percentage: number;
   text: string;
+  bm25_score?: number;
+  rrf_score?: number;
 }
 
 export interface SearchResponse {
@@ -85,7 +87,15 @@ export interface RAGSourceSchema {
   chunk_index: number;
   similarity_score: number;
   similarity_percentage: number;
+  bm25_score?: number;
+  rrf_score?: number;
   text_snippet: string;
+}
+
+export interface RAGTelemetry {
+  retrieval_strategy?: string;
+  retrieval_latency_ms?: number;
+  candidates_evaluated?: number;
 }
 
 export interface RAGAssemblyResponse {
@@ -96,6 +106,7 @@ export interface RAGAssemblyResponse {
   user_prompt: string;
   context_window_text: string;
   sources: RAGSourceSchema[];
+  telemetry?: RAGTelemetry;
 }
 
 export interface RAGQueryResponse {
@@ -107,6 +118,7 @@ export interface RAGQueryResponse {
   completion_tokens: number;
   total_tokens: number;
   sources: RAGSourceSchema[];
+  telemetry?: RAGTelemetry;
 }
 
 export interface ChatMessageSchema {
@@ -115,6 +127,7 @@ export interface ChatMessageSchema {
   role: 'user' | 'assistant';
   message: string;
   sources?: RAGSourceSchema[];
+  telemetry?: RAGTelemetry;
   created_at?: string;
 }
 
@@ -200,6 +213,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   message: string;
   sources?: RAGSource[];
+  telemetry?: RAGTelemetry;
   created_at?: string;
 }
 
@@ -209,6 +223,8 @@ export interface RAGSource {
   chunk_index: number;
   text_snippet: string;
   similarity_score?: number;
+  bm25_score?: number;
+  rrf_score?: number;
 }
 
 export interface SystemHealth {
@@ -216,6 +232,7 @@ export interface SystemHealth {
   groq_api_configured: boolean;
   groq_model: string;
   embedding_model: string;
+  hybrid_retrieval?: boolean;
   chunk_size: number;
   chunk_overlap: number;
   top_k: number;

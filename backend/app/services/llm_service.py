@@ -1,14 +1,16 @@
 """
 LLM Synthesis Service
-Handles single-turn RAG answer generation and multi-turn conversational RAG.
+Handles single-turn RAG answer generation, multi-turn conversational RAG, and SSE streaming synthesis.
 Includes retry logic for Groq API rate limits.
 """
+import json
 import time
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, AsyncGenerator
 from groq import Groq
 from app.config import settings
+from app.logger import logger
 from app.services.rag_service import assemble_rag_pipeline, build_anti_hallucination_system_prompt, construct_context_block
-from app.services.vector_service import search_similar_chunks
+from app.services.hybrid_retrieval_service import perform_hybrid_search
 from app.database.database import (
     insert_chat_message, 
     get_chat_messages_by_paper_id, 
@@ -23,7 +25,7 @@ def get_groq_client() -> Groq:
     if _GROQ_CLIENT is None:
         if not settings.GROQ_API_KEY:
             raise ValueError("GROQ_API_KEY is not configured in .env file.")
-        print(f"[LLM Service] Initializing Groq client (model: {settings.GROQ_MODEL})...")
+        logger.info(f"Initializing Groq client (model: {settings.GROQ_MODEL})...")
         _GROQ_CLIENT = Groq(api_key=settings.GROQ_API_KEY)
     return _GROQ_CLIENT
 
@@ -48,17 +50,14 @@ def _call_groq_with_retry(messages: list, max_tokens: int = 1024, temperature: f
             return response
         except Exception as e:
             error_str = str(e)
-            # Retry on 429 rate limit or 413 too large
             if "429" in error_str or "rate_limit" in error_str.lower():
-                wait_time = (2 ** attempt) * 5  # 5s, 10s, 20s
-                print(f"[LLM Service] Rate limited (attempt {attempt + 1}/{max_retries}). Retrying in {wait_time}s...")
+                wait_time = (2 ** attempt) * 5
+                logger.warning(f"Rate limited (attempt {attempt + 1}/{max_retries}). Retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 continue
             elif "413" in error_str or "too_large" in error_str.lower() or "request_too_large" in error_str.lower():
-                # Reduce max_tokens and retry with shorter context
-                print(f"[LLM Service] Request too large. Reducing max_tokens and retrying...")
+                logger.warning("Request too large. Truncating context and retrying...")
                 max_tokens = max(256, max_tokens // 2)
-                # Trim messages content
                 for msg in messages:
                     if msg["role"] == "user" and len(msg["content"]) > 800:
                         msg["content"] = msg["content"][:800] + "\n\n[Context truncated for size limits]"
@@ -68,7 +67,7 @@ def _call_groq_with_retry(messages: list, max_tokens: int = 1024, temperature: f
             else:
                 raise
 
-    raise Exception(f"Groq API rate limit exceeded after {max_retries} retries. Please wait a few minutes and try again.")
+    raise Exception(f"Groq API rate limit exceeded after {max_retries} retries. Please try again.")
 
 
 def generate_grounded_answer(
@@ -78,7 +77,7 @@ def generate_grounded_answer(
 ) -> Dict:
     """
     Single-Turn RAG Synthesis:
-    1. Assembles RAG context from ChromaDB
+    1. Assembles Hybrid RAG context
     2. Executes LLM inference with retry/backoff
     3. Returns grounded answer, latency_ms, token stats, and sources
     """
@@ -86,8 +85,8 @@ def generate_grounded_answer(
     system_prompt = rag_payload["system_prompt"]
     user_prompt = rag_payload["user_prompt"]
     sources = rag_payload["sources"]
+    telemetry = rag_payload.get("telemetry", {})
 
-    # Truncate prompts if they're too long to avoid 413
     if len(system_prompt) > 2000:
         system_prompt = system_prompt[:2000] + "\n\n[Truncated for token limits]"
     if len(user_prompt) > 2000:
@@ -118,8 +117,61 @@ def generate_grounded_answer(
         "prompt_tokens": prompt_tokens,
         "completion_tokens": completion_tokens,
         "total_tokens": total_tokens,
-        "sources": sources
+        "sources": sources,
+        "telemetry": telemetry
     }
+
+
+async def stream_rag_completion(
+    query: str,
+    paper_id: Optional[str] = None,
+    top_k: int = 3
+) -> AsyncGenerator[str, None]:
+    """
+    Server-Sent Events (SSE) RAG Stream Generator:
+    Streams metadata event first, followed by live LLM tokens, ending with done status.
+    """
+    client = get_groq_client()
+    rag_payload = assemble_rag_pipeline(query=query, top_k=top_k, paper_id=paper_id)
+    sources = rag_payload["sources"]
+    telemetry = rag_payload.get("telemetry", {})
+
+    # 1. Yield sources & metadata event
+    metadata_event = {
+        "type": "metadata",
+        "sources": sources,
+        "telemetry": telemetry
+    }
+    yield f"data: {json.dumps(metadata_event)}\n\n"
+
+    # 2. Prepare streaming completion
+    messages = [
+        {"role": "system", "content": rag_payload["system_prompt"]},
+        {"role": "user", "content": rag_payload["user_prompt"]}
+    ]
+
+    try:
+        response_stream = client.chat.completions.create(
+            model=settings.GROQ_MODEL or "groq/compound",
+            messages=messages,
+            temperature=0.2,
+            max_tokens=1024,
+            stream=True
+        )
+
+        for chunk in response_stream:
+            delta = chunk.choices[0].delta.content if chunk.choices and chunk.choices[0].delta else None
+            if delta:
+                token_event = {"type": "token", "token": delta}
+                yield f"data: {json.dumps(token_event)}\n\n"
+
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+    except Exception as err:
+        logger.error(f"Error in stream_rag_completion: {err}")
+        error_event = {"type": "error", "message": str(err)}
+        yield f"data: {json.dumps(error_event)}\n\n"
+
 
 def generate_conversational_rag_answer(
     paper_id: str, 
@@ -127,35 +179,21 @@ def generate_conversational_rag_answer(
     top_k: int = 3
 ) -> Dict:
     """
-    Multi-Turn Conversational RAG:
-    1. Saves user message to SQLite
-    2. Fetches past chat history
-    3. Retrieves top-K vector chunks from ChromaDB
-    4. Constructs multi-turn messages array
-    5. Executes LLM inference with retry
-    6. Saves assistant answer to SQLite
-    7. Returns updated conversation thread
+    Multi-Turn Conversational RAG with SQLite persistence and Hybrid Retrieval.
     """
-    # 1. Save user message
     insert_chat_message(paper_id=paper_id, role="user", message=user_message)
 
-    # 2. Fetch past chat history
     history = get_chat_messages_by_paper_id(paper_id=paper_id, limit=20)
-
-    # 3. Retrieve relevant chunks
-    retrieved_chunks = search_similar_chunks(query_text=user_message, top_k=top_k, paper_id=paper_id)
+    retrieved_chunks = perform_hybrid_search(query_text=user_message, top_k=top_k, paper_id=paper_id)
     context_text, sources = construct_context_block(retrieved_chunks)
 
-    # 4. Construct messages
     system_prompt = build_anti_hallucination_system_prompt()
-    # Truncate context if too long
     if len(context_text) > 1500:
         context_text = context_text[:1500] + "\n\n[Context truncated]"
     system_content = f"{system_prompt}\n\nGROUNDED CONTEXT:\n{context_text}"
 
     messages_payload = [{"role": "system", "content": system_content}]
 
-    # Append past conversation (last 6 turns for efficiency)
     recent_history = history[:-1][-6:]
     for msg in recent_history:
         if msg["role"] in ["user", "assistant"]:
@@ -167,17 +205,14 @@ def generate_conversational_rag_answer(
                 "content": content
             })
 
-    # Append current user message
     messages_payload.append({
         "role": "user",
         "content": f"{user_message}\n\nAnswer using the provided context and cite sources as [Paper Name, Page X]."
     })
 
-    # 5. Call LLM with retry
     response = _call_groq_with_retry(messages_payload, max_tokens=1024, temperature=0.2)
     assistant_answer = response.choices[0].message.content.strip()
 
-    # 6. Save assistant message
     insert_chat_message(
         paper_id=paper_id, 
         role="assistant", 
@@ -185,7 +220,6 @@ def generate_conversational_rag_answer(
         sources_list=sources
     )
 
-    # 7. Return updated thread
     updated_history = get_chat_messages_by_paper_id(paper_id=paper_id)
 
     return {
