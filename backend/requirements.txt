@@ -1,18 +1,15 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-torch
-fastapi
-uvicorn[standard]
-pymupdf
-chromadb
-groq
-sentence-transformers
-pydantic
-pydantic-settings
-python-dotenv
-python-multipart
-aiofiles
-requests
-rank-bm25
-pytest
-pytest-asyncio
-httpx
+# Ultra-Fast, Zero-Crash Lightweight Dependencies for Render Free Tier (512MB RAM) & Cloud Deployments
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pymupdf>=1.23.0
+groq>=0.4.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+python-dotenv>=1.0.0
+python-multipart>=0.0.6
+aiofiles>=23.2.1
+requests>=2.31.0
+rank-bm25>=0.2.2
+httpx>=0.26.0
+pytest>=7.4.0
+pytest-asyncio>=0.23.0

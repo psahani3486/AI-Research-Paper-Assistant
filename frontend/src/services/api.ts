@@ -34,8 +34,18 @@ export const sanitizeApiUrl = (url: string): string => {
 
 export const getApiBaseUrl = (): string => {
   const custom = typeof window !== 'undefined' ? localStorage.getItem('CUSTOM_API_BASE_URL') : null;
+  if (custom) return sanitizeApiUrl(custom);
+
   const envUrl = import.meta.env.VITE_API_BASE_URL;
-  return sanitizeApiUrl(custom || envUrl || DEFAULT_URL);
+  if (envUrl) return sanitizeApiUrl(envUrl);
+
+  // If running on production/Vercel (non-localhost), default to relative origin ("")
+  // so requests hit Vercel rewrites/serverless endpoints rather than visitor's local machine!
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return '';
+  }
+
+  return sanitizeApiUrl(DEFAULT_URL);
 };
 
 export const API_BASE_URL = getApiBaseUrl();

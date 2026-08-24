@@ -36,7 +36,7 @@ class Settings(BaseSettings):
 
     # Server Configuration
     BACKEND_HOST: str = os.getenv("BACKEND_HOST", "0.0.0.0")
-    BACKEND_PORT: int = int(os.getenv("BACKEND_PORT", 8000))
+    BACKEND_PORT: int = int(os.getenv("PORT", os.getenv("BACKEND_PORT", 8000)))
 
     # Storage Paths
     SQLITE_DB_PATH: str = str(ROOT_DIR / "data" / "assistant.db")
@@ -44,8 +44,7 @@ class Settings(BaseSettings):
     CHROMA_PERSIST_DIR: str = str(ROOT_DIR / "data" / "chroma")
     UPLOAD_DIR: str = str(ROOT_DIR / "data" / "uploads")
 
-    class Config:
-        case_sensitive = True
+    model_config = {"case_sensitive": True, "extra": "allow"}
 
 settings = Settings()
 
