@@ -103,7 +103,7 @@ export const ApiSettingsModal: React.FC<ApiSettingsModalProps> = ({ onClose, onS
                   type="text"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="http://localhost:8000"
+                  placeholder="https://ai-research-paper-assistant-ik0m.onrender.com"
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                 />
                 <LinkIcon className="h-4 w-4 text-slate-500 absolute left-3 top-3" />

@@ -21,13 +21,14 @@ import type {
 } from '../types';
 
 const DEFAULT_URL = 'http://localhost:8000';
+const DEFAULT_PROD_URL = 'https://ai-research-paper-assistant-ik0m.onrender.com';
 
 export const sanitizeApiUrl = (url: string): string => {
   if (!url) return '';
   let cleaned = url.trim().replace(/^["']|["']$/g, '');
   if (!cleaned) return '';
   if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://') && !cleaned.startsWith('/')) {
-    cleaned = `http://${cleaned}`;
+    cleaned = `https://${cleaned}`;
   }
   return cleaned.replace(/\/+$/, '');
 };
@@ -39,10 +40,9 @@ export const getApiBaseUrl = (): string => {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
   if (envUrl) return sanitizeApiUrl(envUrl);
 
-  // If running on production/Vercel (non-localhost), default to relative origin ("")
-  // so requests hit Vercel rewrites/serverless endpoints rather than visitor's local machine!
+  // If running on production/Vercel (non-localhost), default to live Render Backend!
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return '';
+    return sanitizeApiUrl(DEFAULT_PROD_URL);
   }
 
   return sanitizeApiUrl(DEFAULT_URL);
