@@ -3,7 +3,19 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/health",
+      "destination": "https://ai-research-paper-assistant-ik0m.onrender.com/health"
+    },
+    {
+      "source": "/papers/:path*",
+      "destination": "https://ai-research-paper-assistant-ik0m.onrender.com/papers/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://ai-research-paper-assistant-ik0m.onrender.com/api/:path*"
+    },
+    {
+      "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
   ]

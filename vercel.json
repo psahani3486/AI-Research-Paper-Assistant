@@ -1,37 +1,21 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "source": "/health",
+      "destination": "https://ai-research-paper-assistant-ik0m.onrender.com/health"
     },
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/health",
-      "dest": "/api/index.py"
+      "source": "/papers/:path*",
+      "destination": "https://ai-research-paper-assistant-ik0m.onrender.com/papers/:path*"
     },
     {
-      "src": "/papers/(.*)",
-      "dest": "/api/index.py"
+      "source": "/api/:path*",
+      "destination": "https://ai-research-paper-assistant-ik0m.onrender.com/api/:path*"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "source": "/((?!assets/).*)",
+      "destination": "/index.html"
     }
   ]
 }
