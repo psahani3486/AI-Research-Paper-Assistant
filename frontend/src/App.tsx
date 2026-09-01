@@ -13,21 +13,17 @@ import {
   Database, 
   Loader2, 
   Search, 
-  ShieldCheck, 
-  Zap, 
   MessageSquare, 
   Sparkles, 
   Columns3, 
   Compass, 
   Filter, 
   Download, 
-  Award, 
   Settings, 
   Activity,
   PanelLeftClose,
   PanelLeft,
-  Headphones,
-  Layers
+  Headphones
 } from 'lucide-react';
 import { 
   checkSystemHealthWithRetry, 
@@ -42,9 +38,6 @@ import { PaperCard } from './components/PaperCard';
 import { TextViewer } from './components/TextViewer';
 import { ChunkViewer } from './components/ChunkViewer';
 import { VectorViewer } from './components/VectorViewer';
-import { SemanticSearch } from './components/SemanticSearch';
-import { RAGInspector } from './components/RAGInspector';
-import { LLMSynthesis } from './components/LLMSynthesis';
 import { ChatInterface } from './components/ChatInterface';
 import { PaperSummaryView } from './components/PaperSummaryView';
 import { PaperComparisonView } from './components/PaperComparisonView';
@@ -55,25 +48,16 @@ import { ApiSettingsModal } from './components/ApiSettingsModal';
 import { RAGInspectorModal } from './components/RAGInspectorModal';
 import { LiteratureReviewView } from './components/LiteratureReviewView';
 import { AudioBriefingView } from './components/AudioBriefingView';
-import { ProposalCriticView } from './components/ProposalCriticView';
 import { ExportModal } from './components/ExportModal';
 import type { Paper } from './types';
 
 type StudioMode = 
   | 'chat' 
   | 'library' 
-  | 'upload' 
-  | 'lit_review' 
-  | 'compare' 
-  | 'gaps' 
   | 'summarize' 
-  | 'audio_briefing' 
-  | 'critic' 
-  | 'search' 
-  | 'rag' 
-  | 'llm' 
-  | 'eval' 
-  | 'architecture';
+  | 'compare_review' 
+  | 'gaps_viva' 
+  | 'audio_briefing';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -82,10 +66,15 @@ export default function App() {
   const [retryAttempt, setRetryAttempt] = useState(1);
   const [showApiModal, setShowApiModal] = useState(false);
   const [showTelemetryModal, setShowTelemetryModal] = useState(false);
+  const [showArchitectureModal, setShowArchitectureModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportTitle, setExportTitle] = useState('Academic_Report');
   const [exportContent, setExportContent] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Sub-tabs for combined studios
+  const [compareSubTab, setCompareSubTab] = useState<'compare' | 'lit_review'>('compare');
+  const [gapsSubTab, setGapsSubTab] = useState<'gaps' | 'viva'>('gaps');
 
   const openExportModal = (title: string, content: string) => {
     setExportTitle(title);
@@ -111,6 +100,7 @@ export default function App() {
   // Library Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showLibraryUpload, setShowLibraryUpload] = useState(false);
 
   // Indexing state
   const [indexingId, setIndexingId] = useState<string | null>(null);
@@ -173,6 +163,7 @@ export default function App() {
   const handleUploadSuccess = (newPaper: Paper) => {
     setPapers((prev) => [newPaper, ...prev]);
     setSelectedPaper(newPaper);
+    setShowLibraryUpload(false);
     setActiveTab('chat');
   };
 
@@ -232,21 +223,14 @@ export default function App() {
     setActiveTab('chat');
   };
 
+  // 6 Clean, High-Value Core Studio Modes
   const studioModes: { id: StudioMode; label: string; icon: any; badge?: string }[] = [
-    { id: 'chat', label: 'Interactive Research Chat', icon: MessageSquare },
+    { id: 'chat', label: 'Research Chat', icon: MessageSquare },
     { id: 'library', label: 'Paper Library', icon: Library, badge: `${papers.length}` },
-    { id: 'upload', label: 'Upload PDF Paper', icon: Upload },
-    { id: 'lit_review', label: 'Literature Review', icon: BookOpen },
-    { id: 'compare', label: 'Paper Comparison Matrix', icon: Columns3 },
-    { id: 'gaps', label: 'Research Gaps & Future', icon: Compass },
     { id: 'summarize', label: 'Executive Summary', icon: Sparkles },
-    { id: 'audio_briefing', label: 'Audio Podcast Briefing', icon: Headphones },
-    { id: 'critic', label: 'Proposal & Paper Critic', icon: ShieldCheck },
-    { id: 'rag', label: 'RAG Pipeline Deep Inspector', icon: Layers },
-    { id: 'eval', label: 'Viva & Defense Evaluation', icon: Award },
-    { id: 'search', label: 'Hybrid Semantic Search', icon: Search },
-    { id: 'llm', label: 'LLM Direct Synthesis', icon: Zap },
-    { id: 'architecture', label: 'System Architecture', icon: Workflow }
+    { id: 'compare_review', label: 'Compare & Lit Review', icon: Columns3 },
+    { id: 'gaps_viva', label: 'Research Gaps & Viva', icon: Compass },
+    { id: 'audio_briefing', label: 'Audio Podcast', icon: Headphones }
   ];
 
   const currentModeObj = studioModes.find((m) => m.id === activeTab) || studioModes[0];
@@ -302,10 +286,10 @@ export default function App() {
           {/* Scrollable Navigation & Papers Section */}
           <div className="flex-1 overflow-y-auto px-3 space-y-5 pb-4">
             
-            {/* Section 1: Studio Modes */}
+            {/* Section 1: Studio Modes (Clean 6 options) */}
             <div className="space-y-1">
               <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-[#71717a] font-semibold">
-                Research Studios
+                Research Workspace
               </div>
 
               {studioModes.map((mode) => {
@@ -315,14 +299,14 @@ export default function App() {
                   <button
                     key={mode.id}
                     onClick={() => setActiveTab(mode.id)}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${
                       isActive
                         ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
                         : 'text-[#a1a1aa] hover:text-[#ececf1] hover:bg-[#18181b]'
                     }`}
                   >
-                    <div className="flex items-center gap-2 truncate">
-                      <IconComponent className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-[#71717a]'}`} />
+                    <div className="flex items-center gap-2.5 truncate">
+                      <IconComponent className={`h-4 w-4 shrink-0 ${isActive ? 'text-emerald-400' : 'text-[#71717a]'}`} />
                       <span className="truncate">{mode.label}</span>
                     </div>
                     {mode.badge && (
@@ -342,7 +326,10 @@ export default function App() {
                   Paper Library ({papers.length})
                 </span>
                 <button
-                  onClick={() => setActiveTab('upload')}
+                  onClick={() => {
+                    setActiveTab('library');
+                    setShowLibraryUpload(true);
+                  }}
                   className="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium"
                 >
                   + Upload
@@ -362,7 +349,7 @@ export default function App() {
                 </div>
               )}
 
-              <div className="space-y-0.5 max-h-48 overflow-y-auto">
+              <div className="space-y-0.5 max-h-56 overflow-y-auto">
                 {papers.length === 0 ? (
                   <p className="text-[11px] text-[#71717a] px-2 py-1">No papers uploaded yet.</p>
                 ) : sidebarFilteredPapers.length === 0 ? (
@@ -416,10 +403,19 @@ export default function App() {
               <button
                 onClick={() => setShowTelemetryModal(true)}
                 className="flex items-center gap-1.5 text-[11px] font-mono text-[#a1a1aa] hover:text-emerald-400 transition-colors"
-                title="Open RAG Telemetry"
+                title="Open RAG Telemetry & Inspect Embeddings"
               >
                 <Activity className="h-3.5 w-3.5 text-emerald-400" />
                 <span>ChromaDB: <strong>{vectorStats?.total_vectors || 0}</strong> v</span>
+              </button>
+
+              <button
+                onClick={() => setShowArchitectureModal(true)}
+                className="text-[11px] text-[#71717a] hover:text-cyan-400 flex items-center gap-1 transition-colors font-mono"
+                title="System Architecture Diagram"
+              >
+                <Workflow className="h-3 w-3" />
+                <span>System</span>
               </button>
 
               <button
@@ -554,16 +550,30 @@ export default function App() {
             />
           )}
 
-          {/* 2. Paper Library */}
+          {/* 2. Paper Library & Upload */}
           {activeTab === 'library' && (
             <div className="space-y-6 max-w-6xl mx-auto">
+              
+              {/* Optional Upload Section inside Library */}
+              {showLibraryUpload && (
+                <div className="relative">
+                  <FileUpload onUploadSuccess={handleUploadSuccess} />
+                  <button
+                    onClick={() => setShowLibraryUpload(false)}
+                    className="absolute top-4 right-4 text-xs text-zinc-400 hover:text-white px-2 py-1 bg-[#222226] rounded-md"
+                  >
+                    Hide Upload
+                  </button>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-bold text-[#f4f4f5] flex items-center gap-2">
+                  <h2 className="text-base font-bold text-[#f4f4f5] flex items-center gap-2">
                     <Library className="h-5 w-5 text-emerald-400" /> Academic Paper Library
                   </h2>
                   <p className="text-xs text-[#71717a] mt-0.5">
-                    {filteredPapers.length} of {papers.length} documents ({totalPages} pages) indexed for retrieval
+                    {filteredPapers.length} of {papers.length} documents ({totalPages} pages) indexed in vector database
                   </p>
                 </div>
 
@@ -572,7 +582,7 @@ export default function App() {
                     <Search className="h-3.5 w-3.5 text-[#71717a] absolute left-3 top-2.5" />
                     <input
                       type="text"
-                      placeholder="Search title, filename..."
+                      placeholder="Search papers..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#ececf1] placeholder-[#71717a] focus:outline-none focus:border-emerald-500"
@@ -595,10 +605,10 @@ export default function App() {
                   </div>
 
                   <button
-                    onClick={() => setActiveTab('upload')}
+                    onClick={() => setShowLibraryUpload(!showLibraryUpload)}
                     className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all shadow-sm shrink-0"
                   >
-                    <Plus className="h-3.5 w-3.5 stroke-[2.5]" /> Upload PDF
+                    <Plus className="h-3.5 w-3.5 stroke-[2.5]" /> {showLibraryUpload ? 'Close Upload' : 'Upload PDF'}
                   </button>
                 </div>
               </div>
@@ -612,13 +622,13 @@ export default function App() {
                   </div>
                   <h4 className="text-sm font-semibold text-[#ececf1]">No Papers Found</h4>
                   <p className="text-xs text-[#71717a]">
-                    Upload a paper or reset your search filters to view documents.
+                    Upload a paper to extract text, generate embeddings, and start chatting.
                   </p>
                   <button
-                    onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}
-                    className="px-3 py-1.5 bg-[#222226] hover:bg-[#2c2c31] text-[#ececf1] text-xs font-medium rounded-lg"
+                    onClick={() => setShowLibraryUpload(true)}
+                    className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-lg shadow-sm"
                   >
-                    Reset Filters
+                    + Upload First PDF
                   </button>
                 </div>
               ) : (
@@ -638,98 +648,86 @@ export default function App() {
             </div>
           )}
 
-          {/* 3. Upload */}
-          {activeTab === 'upload' && (
-            <div className="max-w-3xl mx-auto space-y-6">
-              <FileUpload onUploadSuccess={handleUploadSuccess} />
-            </div>
-          )}
-
-          {/* 4. Literature Review */}
-          {activeTab === 'lit_review' && (
-            <LiteratureReviewView papers={papers} />
-          )}
-
-          {/* 5. Paper Comparison */}
-          {activeTab === 'compare' && (
-            <PaperComparisonView papers={papers} />
-          )}
-
-          {/* 6. Research Gaps */}
-          {activeTab === 'gaps' && (
-            <ResearchGapView papers={papers} />
-          )}
-
-          {/* 7. Summarization */}
+          {/* 3. Executive Summary */}
           {activeTab === 'summarize' && (
             <PaperSummaryView papers={papers} />
           )}
 
-          {/* 8. Audio Briefing */}
-          {activeTab === 'audio_briefing' && (
-            <AudioBriefingView papers={papers} />
-          )}
-
-          {/* 9. Proposal Critic */}
-          {activeTab === 'critic' && (
-            <ProposalCriticView papers={papers} />
-          )}
-
-          {/* 10. Semantic Search */}
-          {activeTab === 'search' && (
-            <SemanticSearch papers={papers} />
-          )}
-
-          {/* 11. RAG Inspector */}
-          {activeTab === 'rag' && (
-            <RAGInspector papers={papers} />
-          )}
-
-          {/* 12. Direct LLM Synthesis */}
-          {activeTab === 'llm' && (
-            <LLMSynthesis papers={papers} />
-          )}
-
-          {/* 13. Evaluation & Viva */}
-          {activeTab === 'eval' && (
-            <EvaluationVivaView papers={papers} />
-          )}
-
-          {/* 14. Architecture */}
-          {activeTab === 'architecture' && (
-            <div className="max-w-4xl mx-auto space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-[#141417] border border-[#232327] rounded-xl p-5 space-y-3">
-                  <div className="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                    <Upload className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-white">1. Ingestion & Chunking</h3>
-                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                    PDF text extracted page-by-page, chunked with recursive overlap to maintain semantic continuity.
-                  </p>
-                </div>
-
-                <div className="bg-[#141417] border border-[#232327] rounded-xl p-5 space-y-3">
-                  <div className="h-8 w-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-                    <Cpu className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-white">2. Embeddings & ChromaDB</h3>
-                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                    Sentences encoded into 384-dimensional dense vectors stored in local ChromaDB collections.
-                  </p>
-                </div>
-
-                <div className="bg-[#141417] border border-[#232327] rounded-xl p-5 space-y-3">
-                  <div className="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-sm font-semibold text-white">3. Hybrid RAG Synthesis</h3>
-                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                    Dense vector similarity combined with BM25 keyword matching and Groq LLaMA-3 synthesis.
-                  </p>
+          {/* 4. Unified Comparison & Literature Review Studio */}
+          {activeTab === 'compare_review' && (
+            <div className="space-y-5 max-w-6xl mx-auto">
+              <div className="flex items-center justify-center sm:justify-start">
+                <div className="inline-flex p-1 bg-[#141417] border border-[#27272a] rounded-xl">
+                  <button
+                    onClick={() => setCompareSubTab('compare')}
+                    className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                      compareSubTab === 'compare'
+                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
+                        : 'text-[#a1a1aa] hover:text-[#ececf1]'
+                    }`}
+                  >
+                    📊 Side-by-Side Comparison Matrix
+                  </button>
+                  <button
+                    onClick={() => setCompareSubTab('lit_review')}
+                    className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                      compareSubTab === 'lit_review'
+                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
+                        : 'text-[#a1a1aa] hover:text-[#ececf1]'
+                    }`}
+                  >
+                    📖 Autonomous Literature Review
+                  </button>
                 </div>
               </div>
+
+              {compareSubTab === 'compare' ? (
+                <PaperComparisonView papers={papers} />
+              ) : (
+                <LiteratureReviewView papers={papers} />
+              )}
             </div>
+          )}
+
+          {/* 5. Unified Research Gaps & Viva Prep Studio */}
+          {activeTab === 'gaps_viva' && (
+            <div className="space-y-5 max-w-6xl mx-auto">
+              <div className="flex items-center justify-center sm:justify-start">
+                <div className="inline-flex p-1 bg-[#141417] border border-[#27272a] rounded-xl">
+                  <button
+                    onClick={() => setGapsSubTab('gaps')}
+                    className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                      gapsSubTab === 'gaps'
+                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
+                        : 'text-[#a1a1aa] hover:text-[#ececf1]'
+                    }`}
+                  >
+                    🎯 Research Gaps & Novelty Analysis
+                  </button>
+                  <button
+                    onClick={() => setGapsSubTab('viva')}
+                    className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                      gapsSubTab === 'viva'
+                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
+                        : 'text-[#a1a1aa] hover:text-[#ececf1]'
+                    }`}
+                  >
+                    🎓 Thesis Defense & Viva Simulator
+                  </button>
+                </div>
+              </div>
+
+              {gapsSubTab === 'gaps' ? (
+                <ResearchGapView papers={papers} />
+              ) : (
+                <EvaluationVivaView papers={papers} />
+              )}
+            </div>
+          )}
+
+          {/* 6. Audio Podcast Briefing */}
+          {activeTab === 'audio_briefing' && (
+            <AudioBriefingView papers={papers} />
           )}
 
         </main>
@@ -904,6 +902,71 @@ export default function App() {
           }
         ]}
       />
+
+      {/* System Architecture Modal */}
+      {showArchitectureModal && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-[#141417] border border-[#27272a] rounded-2xl p-6 sm:p-8 max-w-2xl w-full space-y-6 shadow-2xl relative">
+            <button 
+              onClick={() => setShowArchitectureModal(false)}
+              className="absolute top-5 right-5 p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg hover:bg-[#222226]"
+            >
+              ✕
+            </button>
+
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded">
+                Technical Specification
+              </span>
+              <h3 className="text-lg font-bold text-white">End-to-End RAG Architecture</h3>
+              <p className="text-xs text-[#71717a]">
+                Hybrid dense retrieval & Groq LLaMA-3 academic synthesis pipeline.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-[#0e0e11] border border-[#232327] rounded-xl p-4 space-y-2">
+                <div className="h-7 w-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <Upload className="h-3.5 w-3.5" />
+                </div>
+                <h4 className="text-xs font-semibold text-white">1. Ingestion</h4>
+                <p className="text-[11px] text-[#a1a1aa] leading-relaxed">
+                  PDF parsed page-by-page, chunked with 500-char window and 100-char overlap.
+                </p>
+              </div>
+
+              <div className="bg-[#0e0e11] border border-[#232327] rounded-xl p-4 space-y-2">
+                <div className="h-7 w-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                  <Cpu className="h-3.5 w-3.5" />
+                </div>
+                <h4 className="text-xs font-semibold text-white">2. ChromaDB</h4>
+                <p className="text-[11px] text-[#a1a1aa] leading-relaxed">
+                  all-MiniLM-L6-v2 384d dense embeddings indexed in local ChromaDB collections.
+                </p>
+              </div>
+
+              <div className="bg-[#0e0e11] border border-[#232327] rounded-xl p-4 space-y-2">
+                <div className="h-7 w-7 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                  <Sparkles className="h-3.5 w-3.5" />
+                </div>
+                <h4 className="text-xs font-semibold text-white">3. Synthesis</h4>
+                <p className="text-[11px] text-[#a1a1aa] leading-relaxed">
+                  Hybrid BM25 + vector reranking synthesized via Groq LLaMA-3 with citations.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowArchitectureModal(false)}
+                className="px-4 py-2 bg-[#222226] hover:bg-[#2c2c31] text-zinc-200 text-xs font-semibold rounded-lg"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Export Modal */}
       <ExportModal
