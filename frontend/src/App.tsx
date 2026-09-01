@@ -1,39 +1,41 @@
 import { useState, useEffect } from 'react';
 import { 
   BookOpen, 
-  CheckCircle2, 
-  XCircle, 
-  RefreshCw,
-  FileText,
-  Workflow,
-  Library,
-  Upload,
-  Plus,
-  Eye,
-  Scissors,
-  Cpu,
-  Database,
-  Loader2,
-  Search,
-  ShieldCheck,
-  Zap,
-  MessageSquare,
-  Sparkles,
-  Columns3,
-  Compass,
-  Filter,
-  Download,
-  Award,
-  Settings,
-  Activity
+  RefreshCw, 
+  FileText, 
+  Workflow, 
+  Library, 
+  Upload, 
+  Plus, 
+  Eye, 
+  Scissors, 
+  Cpu, 
+  Database, 
+  Loader2, 
+  Search, 
+  ShieldCheck, 
+  Zap, 
+  MessageSquare, 
+  Sparkles, 
+  Columns3, 
+  Compass, 
+  Filter, 
+  Download, 
+  Award, 
+  Settings, 
+  Activity,
+  PanelLeftClose,
+  PanelLeft,
+  Headphones,
+  Layers
 } from 'lucide-react';
 import { 
   checkSystemHealthWithRetry, 
   getPapers, 
   deletePaper, 
   indexPaperInChromaDB, 
-  getVectorDBStats,
-  downloadResearchDossier
+  getVectorDBStats, 
+  downloadResearchDossier 
 } from './services/api';
 import { FileUpload } from './components/FileUpload';
 import { PaperCard } from './components/PaperCard';
@@ -57,6 +59,22 @@ import { ProposalCriticView } from './components/ProposalCriticView';
 import { ExportModal } from './components/ExportModal';
 import type { Paper } from './types';
 
+type StudioMode = 
+  | 'chat' 
+  | 'library' 
+  | 'upload' 
+  | 'lit_review' 
+  | 'compare' 
+  | 'gaps' 
+  | 'summarize' 
+  | 'audio_briefing' 
+  | 'critic' 
+  | 'search' 
+  | 'rag' 
+  | 'llm' 
+  | 'eval' 
+  | 'architecture';
+
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +85,7 @@ export default function App() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportTitle, setExportTitle] = useState('Academic_Report');
   const [exportContent, setExportContent] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const openExportModal = (title: string, content: string) => {
     setExportTitle(title);
@@ -82,6 +101,12 @@ export default function App() {
   const [chunkPaperObj, setChunkPaperObj] = useState<Paper | null>(null);
   const [vectorPaperObj, setVectorPaperObj] = useState<Paper | null>(null);
   const [pdfPaperObj, setPdfPaperObj] = useState<Paper | null>(null);
+
+  // Active Tab / Mode
+  const [activeTab, setActiveTab] = useState<StudioMode>('chat');
+
+  // Sidebar paper search filter
+  const [sidebarPaperSearch, setSidebarPaperSearch] = useState('');
 
   // Library Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -120,7 +145,10 @@ export default function App() {
     setPapersLoading(true);
     try {
       const res = await getPapers();
-      setPapers(res.papers);
+      setPapers(res.papers || []);
+      if (res.papers && res.papers.length > 0 && !selectedPaper) {
+        setSelectedPaper(res.papers[0]);
+      }
     } catch (err) {
       console.error('Failed to fetch papers:', err);
     } finally {
@@ -144,16 +172,20 @@ export default function App() {
 
   const handleUploadSuccess = (newPaper: Paper) => {
     setPapers((prev) => [newPaper, ...prev]);
-    setActiveTab('library');
+    setSelectedPaper(newPaper);
+    setActiveTab('chat');
   };
 
   const handleDeletePaper = async (paperId: string) => {
     try {
       await deletePaper(paperId);
-      setPapers((prev) => prev.filter((p) => p.id !== paperId));
-      if (selectedPaper?.id === paperId) {
-        setSelectedPaper(null);
-      }
+      setPapers((prev) => {
+        const updated = prev.filter((p) => p.id !== paperId);
+        if (selectedPaper?.id === paperId) {
+          setSelectedPaper(updated.length > 0 ? updated[0] : null);
+        }
+        return updated;
+      });
       fetchHealth();
     } catch (err) {
       console.error('Failed to delete paper:', err);
@@ -176,552 +208,614 @@ export default function App() {
     }
   };
 
-  const [activeTab, setActiveTab] = useState<'upload' | 'library' | 'chat' | 'eval' | 'gaps' | 'summarize' | 'compare' | 'lit_review' | 'audio_briefing' | 'critic' | 'search' | 'rag' | 'llm' | 'architecture'>('upload');
-
   const totalPages = papers.reduce((acc, p) => acc + (p.pages || 0), 0);
 
-  // Filtered Papers
+  // Filtered Papers for Library
   const filteredPapers = papers.filter((p) => {
     const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.filename.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
+  // Filtered Papers for Sidebar
+  const sidebarFilteredPapers = papers.filter((p) =>
+    p.title.toLowerCase().includes(sidebarPaperSearch.toLowerCase()) ||
+    p.filename.toLowerCase().includes(sidebarPaperSearch.toLowerCase())
+  );
 
+  const startNewChat = () => {
+    setActiveTab('chat');
+  };
+
+  const selectPaperAndChat = (paper: Paper) => {
+    setSelectedPaper(paper);
+    setActiveTab('chat');
+  };
+
+  const studioModes: { id: StudioMode; label: string; icon: any; badge?: string }[] = [
+    { id: 'chat', label: 'Interactive Research Chat', icon: MessageSquare },
+    { id: 'library', label: 'Paper Library', icon: Library, badge: `${papers.length}` },
+    { id: 'upload', label: 'Upload PDF Paper', icon: Upload },
+    { id: 'lit_review', label: 'Literature Review', icon: BookOpen },
+    { id: 'compare', label: 'Paper Comparison Matrix', icon: Columns3 },
+    { id: 'gaps', label: 'Research Gaps & Future', icon: Compass },
+    { id: 'summarize', label: 'Executive Summary', icon: Sparkles },
+    { id: 'audio_briefing', label: 'Audio Podcast Briefing', icon: Headphones },
+    { id: 'critic', label: 'Proposal & Paper Critic', icon: ShieldCheck },
+    { id: 'rag', label: 'RAG Pipeline Deep Inspector', icon: Layers },
+    { id: 'eval', label: 'Viva & Defense Evaluation', icon: Award },
+    { id: 'search', label: 'Hybrid Semantic Search', icon: Search },
+    { id: 'llm', label: 'LLM Direct Synthesis', icon: Zap },
+    { id: 'architecture', label: 'System Architecture', icon: Workflow }
+  ];
+
+  const currentModeObj = studioModes.find((m) => m.id === activeTab) || studioModes[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Top Navbar */}
-      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/20">
-              <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-indigo-400" />
+    <div className="min-h-screen bg-[#0e0e11] text-[#ececf1] flex flex-row overflow-hidden font-sans">
+      
+      {/* ChatGPT Sleek Left Sidebar */}
+      <aside 
+        className={`fixed inset-y-0 left-0 z-40 bg-[#121215] border-r border-[#232327] flex flex-col justify-between transition-all duration-300 ease-in-out md:static ${
+          sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'
+        }`}
+      >
+        <div className="flex flex-col h-full overflow-hidden">
+          
+          {/* Top Brand Header */}
+          <div className="p-3.5 border-b border-[#232327] flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <BookOpen className="h-4 w-4" />
               </div>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-bold text-lg text-white tracking-tight">AI Research Paper Assistant</h1>
-              </div>
-              <p className="text-xs text-slate-400">RAG-Powered Academic Intelligence System</p>
-            </div>
-          </div>
-
-          {/* Backend Status & ChromaDB Vectors Badge */}
-          <div className="flex items-center gap-3">
-            {vectorStats && (
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 font-mono">
-                <Database className="h-3.5 w-3.5 text-emerald-400" />
-                <span>Vectors: <strong>{vectorStats.total_vectors}</strong></span>
-              </div>
-            )}
-
-            <button
-              onClick={() => setShowTelemetryModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 text-xs font-medium text-indigo-300 transition-colors"
-              title="Inspect Hybrid RAG & Telemetry Metrics"
-            >
-              <Activity className="h-3.5 w-3.5 text-indigo-400" />
-              <span className="hidden sm:inline">RAG Telemetry</span>
-            </button>
-
-            <button
-              onClick={() => openExportModal('Academic_Dossier', '# Academic Research Report\n\nGenerated by AI Research Assistant.')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-xs font-medium text-purple-300 transition-colors"
-              title="Export Research Artifacts (LaTeX, BibTeX, Markdown, JSON)"
-            >
-              <Download className="h-3.5 w-3.5 text-purple-400" />
-              <span className="hidden sm:inline">Export LaTeX/BibTeX</span>
-            </button>
-
-            <button 
-              onClick={() => { fetchHealth(); fetchPapers(); }} 
-              disabled={loading}
-              className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
-              title="Refresh connection"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
-            </button>
-
-            <button
-              onClick={() => setShowApiModal(true)}
-              className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
-              title="Configure API Base URL"
-            >
-              <Settings className="h-4 w-4" />
-            </button>
-
-            {connectionState === 'waking' || loading ? (
-              <button
-                onClick={() => setShowApiModal(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-xs text-amber-300 transition-colors cursor-pointer"
-                title="Backend is connecting... Click to configure API settings"
-              >
-                <span className="h-2 w-2 rounded-full bg-amber-400 animate-ping" />
-                <span>Waking ({retryAttempt}/5)...</span>
-              </button>
-            ) : connectionState === 'offline' || error ? (
-              <button 
-                onClick={() => setShowApiModal(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-xs text-rose-300 transition-colors cursor-pointer"
-                title="Backend Unreachable. Click to test or edit API URL"
-              >
-                <XCircle className="h-4 w-4 text-rose-400" />
-                <span>Offline</span>
-              </button>
-            ) : (
-              <button 
-                onClick={() => setShowApiModal(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs text-emerald-300 transition-colors cursor-pointer"
-                title="Backend Connected. Click for API settings"
-              >
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                <span>Online</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
-        {/* Navigation Tabs */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-1.5 overflow-x-auto">
-            <button
-              onClick={() => setActiveTab('upload')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'upload'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Upload className="h-3.5 w-3.5" /> Upload
-            </button>
-
-            <button
-              onClick={() => setActiveTab('library')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'library'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Library className="h-3.5 w-3.5" /> Library ({papers.length})
-            </button>
-
-            <button
-              onClick={() => setActiveTab('chat')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'chat'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <MessageSquare className="h-3.5 w-3.5" /> Chat
-            </button>
-
-            <button
-              onClick={() => setActiveTab('summarize')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'summarize'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5" /> Summary
-            </button>
-
-            <button
-              onClick={() => setActiveTab('compare')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'compare'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Columns3 className="h-3.5 w-3.5" /> Compare
-            </button>
-
-            <button
-              onClick={() => setActiveTab('gaps')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'gaps'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Compass className="h-3.5 w-3.5" /> Gaps
-            </button>
-
-            <button
-              onClick={() => setActiveTab('lit_review')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'lit_review'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <BookOpen className="h-3.5 w-3.5" /> Lit Review
-            </button>
-
-            <button
-              onClick={() => setActiveTab('audio_briefing')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'audio_briefing'
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Workflow className="h-3.5 w-3.5 text-purple-300" /> Audio Podcast
-            </button>
-
-            <button
-              onClick={() => setActiveTab('critic')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'critic'
-                  ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <ShieldCheck className="h-3.5 w-3.5 text-amber-300" /> Proposal Critic
-            </button>
-
-            <button
-              onClick={() => setActiveTab('search')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'search'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Search className="h-3.5 w-3.5" /> Search
-            </button>
-
-            <button
-              onClick={() => setActiveTab('rag')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'rag'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <ShieldCheck className="h-3.5 w-3.5" /> RAG Pipeline
-            </button>
-
-            <button
-              onClick={() => setActiveTab('llm')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'llm'
-                  ? 'bg-gradient-to-r from-amber-600 to-indigo-600 text-white shadow-lg shadow-amber-600/30 font-bold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Zap className="h-3.5 w-3.5" /> LLM Q&A
-            </button>
-
-            <button
-              onClick={() => setActiveTab('eval')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'eval'
-                  ? 'bg-gradient-to-r from-emerald-600 to-indigo-600 text-white shadow-lg shadow-emerald-600/30 font-bold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Award className="h-3.5 w-3.5" /> Evaluation
-            </button>
-
-            <button
-              onClick={() => setActiveTab('architecture')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === 'architecture'
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Workflow className="h-3.5 w-3.5" /> Architecture
-            </button>
-
-
-          </div>
-
-          <div className="hidden lg:flex items-center gap-3 text-xs text-slate-400">
-            <span className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
-              Papers: <strong className="text-white">{papers.length}</strong>
-            </span>
-            <span className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
-              Pages: <strong className="text-white">{totalPages}</strong>
-            </span>
-          </div>
-        </div>
-
-        {/* Tab 1: Upload */}
-        {activeTab === 'upload' && (
-          <div className="space-y-6 max-w-4xl mx-auto">
-            <FileUpload onUploadSuccess={handleUploadSuccess} />
-
-            {papers.length > 0 && (
-              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-indigo-400" /> Recent Uploads
-                  </h4>
-                  <button 
-                    onClick={() => setActiveTab('library')}
-                    className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
-                  >
-                    View All ({papers.length}) →
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {papers.slice(0, 4).map((paper) => (
-                    <div 
-                      key={paper.id}
-                      onClick={() => setSelectedPaper(paper)}
-                      className="bg-slate-950 border border-slate-800 hover:border-indigo-500/50 rounded-xl p-3.5 flex items-center justify-between cursor-pointer group transition-all"
-                    >
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="h-8 w-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
-                          <FileText className="h-4 w-4" />
-                        </div>
-                        <div className="truncate">
-                          <p className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 truncate">
-                            {paper.title}
-                          </p>
-                          <p className="text-[10px] text-slate-500">{paper.pages} pages · {paper.status}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Tab 2: Library */}
-        {activeTab === 'library' && (
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Library className="h-5 w-5 text-indigo-400" /> Paper Library
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  {filteredPapers.length} of {papers.length} papers
-                </p>
+                <h1 className="font-semibold text-xs text-[#f4f4f5] tracking-tight">ScholarGPT</h1>
+                <p className="text-[10px] text-[#71717a] font-mono">Academic Workspace</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-[#222226] rounded-lg transition-colors md:hidden"
+              title="Close sidebar"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* New Chat Action Button */}
+          <div className="p-3">
+            <button
+              onClick={startNewChat}
+              className="w-full py-2 px-3 bg-[#18181b] hover:bg-[#222226] border border-[#2e2e33] hover:border-[#3f3f46] text-[#ececf1] rounded-xl text-xs font-semibold flex items-center justify-between transition-all duration-200 shadow-sm group"
+            >
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-5 rounded-md bg-emerald-500/15 flex items-center justify-center text-emerald-400">
+                  <Plus className="h-3.5 w-3.5" />
+                </div>
+                <span>New Research Chat</span>
+              </div>
+              <Sparkles className="h-3 w-3 text-[#71717a] group-hover:text-emerald-400 transition-colors" />
+            </button>
+          </div>
+
+          {/* Scrollable Navigation & Papers Section */}
+          <div className="flex-1 overflow-y-auto px-3 space-y-5 pb-4">
+            
+            {/* Section 1: Studio Modes */}
+            <div className="space-y-1">
+              <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-[#71717a] font-semibold">
+                Research Studios
               </div>
 
-              {/* Search & Status Filters */}
-              <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <div className="relative flex-1 md:w-64">
-                  <Search className="h-4 w-4 text-slate-500 absolute left-3 top-2.5" />
-                  <input
-                    type="text"
-                    placeholder="Search papers..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-
-                <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs">
-                  <Filter className="h-3.5 w-3.5 text-slate-400 ml-2" />
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="bg-transparent text-slate-300 font-semibold focus:outline-none cursor-pointer py-1 pr-2 text-xs"
+              {studioModes.map((mode) => {
+                const IconComponent = mode.icon;
+                const isActive = activeTab === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    onClick={() => setActiveTab(mode.id)}
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      isActive
+                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
+                        : 'text-[#a1a1aa] hover:text-[#ececf1] hover:bg-[#18181b]'
+                    }`}
                   >
-                    <option value="all" className="bg-slate-900">All</option>
-                    <option value="uploaded" className="bg-slate-900">Uploaded</option>
-                    <option value="chunked" className="bg-slate-900">Chunked</option>
-                    <option value="embedded" className="bg-slate-900">Embedded</option>
-                    <option value="indexed" className="bg-slate-900">Indexed</option>
-                  </select>
-                </div>
+                    <div className="flex items-center gap-2 truncate">
+                      <IconComponent className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-[#71717a]'}`} />
+                      <span className="truncate">{mode.label}</span>
+                    </div>
+                    {mode.badge && (
+                      <span className="text-[10px] bg-[#27272a] text-[#a1a1aa] px-1.5 py-0.5 rounded font-mono">
+                        {mode.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
+            {/* Section 2: Uploaded Paper Contexts */}
+            <div className="space-y-2 pt-2 border-t border-[#232327]">
+              <div className="flex items-center justify-between px-2">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717a] font-semibold">
+                  Paper Library ({papers.length})
+                </span>
                 <button
                   onClick={() => setActiveTab('upload')}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all shrink-0"
+                  className="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium"
                 >
-                  <Plus className="h-4 w-4" /> Upload
+                  + Upload
+                </button>
+              </div>
+
+              {papers.length > 0 && (
+                <div className="relative px-1">
+                  <Search className="h-3 w-3 text-[#71717a] absolute left-3 top-2" />
+                  <input
+                    type="text"
+                    placeholder="Filter papers..."
+                    value={sidebarPaperSearch}
+                    onChange={(e) => setSidebarPaperSearch(e.target.value)}
+                    className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-7 pr-2 py-1 text-[11px] text-[#ececf1] placeholder-[#71717a] focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                {papers.length === 0 ? (
+                  <p className="text-[11px] text-[#71717a] px-2 py-1">No papers uploaded yet.</p>
+                ) : sidebarFilteredPapers.length === 0 ? (
+                  <p className="text-[11px] text-[#71717a] px-2 py-1">No matching papers.</p>
+                ) : (
+                  sidebarFilteredPapers.map((paper) => {
+                    const isSelected = selectedPaper?.id === paper.id;
+                    return (
+                      <div
+                        key={paper.id}
+                        onClick={() => selectPaperAndChat(paper)}
+                        className={`w-full group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                          isSelected
+                            ? 'bg-[#1e1e24] text-white border border-[#2e2e33]'
+                            : 'text-[#a1a1aa] hover:text-[#ececf1] hover:bg-[#18181b]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${
+                            paper.status === 'indexed' ? 'bg-emerald-400' : 'bg-zinc-500'
+                          }`} />
+                          <span className="truncate text-[11px] font-medium">{paper.title}</span>
+                        </div>
+
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPdfPaperObj(paper);
+                            }}
+                            className="p-1 hover:text-emerald-400"
+                            title="View PDF"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Bottom Workspace / User Profile Bar */}
+          <div className="p-3 border-t border-[#232327] bg-[#101013] space-y-2">
+            
+            {/* Vector Stats & RAG Telemetry trigger */}
+            <div className="flex items-center justify-between text-xs">
+              <button
+                onClick={() => setShowTelemetryModal(true)}
+                className="flex items-center gap-1.5 text-[11px] font-mono text-[#a1a1aa] hover:text-emerald-400 transition-colors"
+                title="Open RAG Telemetry"
+              >
+                <Activity className="h-3.5 w-3.5 text-emerald-400" />
+                <span>ChromaDB: <strong>{vectorStats?.total_vectors || 0}</strong> v</span>
+              </button>
+
+              <button
+                onClick={() => openExportModal('Academic_Dossier', '# Academic Research Report\n\nGenerated by AI Research Assistant.')}
+                className="text-[11px] text-[#a1a1aa] hover:text-purple-300 flex items-center gap-1 transition-colors"
+                title="Export LaTeX / BibTeX / Dossier"
+              >
+                <Download className="h-3 w-3" />
+                <span>Export</span>
+              </button>
+            </div>
+
+            {/* Connection Status & Settings */}
+            <div className="flex items-center justify-between pt-1 border-t border-[#1f1f23]">
+              <div 
+                className="flex items-center gap-1.5 cursor-pointer"
+                onClick={() => setShowApiModal(true)}
+                title={error ? `Error: ${error} (Click to configure API)` : `Backend Status: ${connectionState}`}
+              >
+                <span className={`h-2 w-2 rounded-full ${
+                  connectionState === 'online'
+                    ? 'bg-emerald-400'
+                    : connectionState === 'waking'
+                    ? 'bg-amber-400 animate-pulse'
+                    : 'bg-rose-400'
+                }`} />
+                <span className="text-[11px] text-[#71717a] capitalize">
+                  {connectionState === 'waking' ? `Waking (${retryAttempt}/5)` : connectionState}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => { fetchHealth(); fetchPapers(); }}
+                  disabled={loading}
+                  className="p-1 text-[#71717a] hover:text-[#ececf1] rounded transition-colors"
+                  title="Refresh Connection"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
+                </button>
+
+                <button
+                  onClick={() => setShowApiModal(true)}
+                  className="p-1 text-[#71717a] hover:text-[#ececf1] rounded transition-colors"
+                  title="Configure API Endpoint"
+                >
+                  <Settings className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
 
-            {papersLoading ? (
-              <div className="text-center py-16 text-slate-400 text-sm">
-                Loading...
-              </div>
-            ) : filteredPapers.length === 0 ? (
-              <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-12 text-center space-y-4 max-w-md mx-auto">
-                <div className="h-14 w-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mx-auto">
-                  <FileText className="h-7 w-7" />
-                </div>
-                <h4 className="text-lg font-bold text-white">No Papers Found</h4>
-                <p className="text-xs text-slate-400">
-                  Try clearing your search or filter.
-                </p>
-                <button
-                  onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl"
-                >
-                  Reset Filters
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredPapers.map((paper) => (
-                  <PaperCard
-                    key={paper.id}
-                    paper={paper}
-                    onDelete={handleDeletePaper}
-                    onSelect={(p) => setSelectedPaper(p)}
-                    onViewPDF={(p) => setPdfPaperObj(p)}
-                  />
-                ))}
+          </div>
+
+        </div>
+      </aside>
+
+      {/* Main Canvas Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-[#0e0e11]">
+        
+        {/* Top Floating App Bar */}
+        <header className="h-12 border-b border-[#232327] bg-[#121215]/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-20">
+          
+          <div className="flex items-center gap-3">
+            {/* Sidebar toggle button */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-[#222226] rounded-lg transition-colors"
+              title={sidebarOpen ? "Hide sidebar" : "Open sidebar"}
+            >
+              {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+            </button>
+
+            {/* Active Studio Mode Title */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-[#f4f4f5]">{currentModeObj.label}</span>
+            </div>
+          </div>
+
+          {/* Right Header Controls */}
+          <div className="flex items-center gap-2.5">
+            
+            {/* Active Paper Quick Pill */}
+            {selectedPaper && (
+              <div 
+                onClick={() => setSelectedPaper(selectedPaper)}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#18181b] border border-[#27272a] hover:border-[#38383e] text-xs text-[#a1a1aa] cursor-pointer transition-colors max-w-[220px]"
+                title="Active context paper"
+              >
+                <FileText className="h-3 w-3 text-emerald-400 shrink-0" />
+                <span className="truncate text-[11px] font-medium text-[#ececf1]">{selectedPaper.title}</span>
               </div>
             )}
-          </div>
-        )}
 
-        {/* Evaluation */}
-        {activeTab === 'eval' && (
-          <EvaluationVivaView papers={papers} />
-        )}
-
-        {/* Chat */}
-        {activeTab === 'chat' && (
-          <ChatInterface papers={papers} />
-        )}
-
-        {/* Research Gaps */}
-        {activeTab === 'gaps' && (
-          <ResearchGapView papers={papers} />
-        )}
-
-        {/* Summarization */}
-        {activeTab === 'summarize' && (
-          <PaperSummaryView papers={papers} />
-        )}
-
-        {/* Comparison */}
-        {activeTab === 'compare' && (
-          <PaperComparisonView papers={papers} />
-        )}
-
-        {/* Autonomous Literature Review */}
-        {activeTab === 'lit_review' && (
-          <LiteratureReviewView papers={papers} />
-        )}
-
-        {/* NotebookLM Audio Briefing */}
-        {activeTab === 'audio_briefing' && (
-          <AudioBriefingView papers={papers} />
-        )}
-
-        {/* Proposal Critic */}
-        {activeTab === 'critic' && (
-          <ProposalCriticView papers={papers} />
-        )}
-
-        {/* Semantic Search */}
-        {activeTab === 'search' && (
-          <SemanticSearch papers={papers} />
-        )}
-
-        {/* RAG Pipeline */}
-        {activeTab === 'rag' && (
-          <RAGInspector papers={papers} />
-        )}
-
-        {/* LLM Q&A */}
-        {activeTab === 'llm' && (
-          <LLMSynthesis papers={papers} />
-        )}
-
-        {/* Paper Detail Modal */}
-        {selectedPaper && (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-xl w-full space-y-6 shadow-2xl relative">
-              <button 
-                onClick={() => setSelectedPaper(null)}
-                className="absolute top-6 right-6 p-2 text-slate-400 hover:text-white rounded-lg bg-slate-800"
+            {/* PDF View action if paper is loaded */}
+            {selectedPaper && (
+              <button
+                onClick={() => setPdfPaperObj(selectedPaper)}
+                className="hidden md:flex items-center gap-1 px-2.5 py-1 bg-[#18181b] hover:bg-[#222226] border border-[#27272a] text-zinc-300 text-xs rounded-lg transition-colors"
+                title="Read PDF"
               >
-                ✕
+                <Eye className="h-3.5 w-3.5 text-emerald-400" />
+                <span>PDF</span>
+              </button>
+            )}
+
+            {/* Quick Export Dossier Button */}
+            <button
+              onClick={() => openExportModal('Academic_Dossier', '# Academic Research Report\n\nGenerated by AI Research Assistant.')}
+              className="flex items-center gap-1 px-2.5 py-1 bg-[#18181b] hover:bg-[#222226] border border-[#27272a] text-zinc-300 text-xs rounded-lg transition-colors"
+              title="Export Research Artifacts"
+            >
+              <Download className="h-3.5 w-3.5 text-purple-400" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+          </div>
+
+        </header>
+
+        {/* Dynamic Studio Canvas Container */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+          
+          {/* 1. Interactive Chat */}
+          {activeTab === 'chat' && (
+            <ChatInterface 
+              papers={papers} 
+              activePaperId={selectedPaper?.id} 
+              onPaperChange={(id) => {
+                const found = papers.find(p => p.id === id);
+                if (found) setSelectedPaper(found);
+              }}
+              onOpenPDF={(paper) => setPdfPaperObj(paper)}
+            />
+          )}
+
+          {/* 2. Paper Library */}
+          {activeTab === 'library' && (
+            <div className="space-y-6 max-w-6xl mx-auto">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-[#f4f4f5] flex items-center gap-2">
+                    <Library className="h-5 w-5 text-emerald-400" /> Academic Paper Library
+                  </h2>
+                  <p className="text-xs text-[#71717a] mt-0.5">
+                    {filteredPapers.length} of {papers.length} documents ({totalPages} pages) indexed for retrieval
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:w-60">
+                    <Search className="h-3.5 w-3.5 text-[#71717a] absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      placeholder="Search title, filename..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#ececf1] placeholder-[#71717a] focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-1 bg-[#18181b] border border-[#27272a] rounded-lg px-2 py-1 text-xs">
+                    <Filter className="h-3 w-3 text-[#71717a]" />
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="bg-transparent text-[#a1a1aa] font-medium focus:outline-none cursor-pointer text-xs"
+                    >
+                      <option value="all" className="bg-[#18181b]">All</option>
+                      <option value="uploaded" className="bg-[#18181b]">Uploaded</option>
+                      <option value="chunked" className="bg-[#18181b]">Chunked</option>
+                      <option value="embedded" className="bg-[#18181b]">Embedded</option>
+                      <option value="indexed" className="bg-[#18181b]">Indexed</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={() => setActiveTab('upload')}
+                    className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+                  >
+                    <Plus className="h-3.5 w-3.5 stroke-[2.5]" /> Upload PDF
+                  </button>
+                </div>
+              </div>
+
+              {papersLoading ? (
+                <div className="text-center py-16 text-zinc-500 text-xs">Loading papers...</div>
+              ) : filteredPapers.length === 0 ? (
+                <div className="bg-[#141417] border border-[#232327] rounded-2xl p-10 text-center space-y-3 max-w-md mx-auto">
+                  <div className="h-10 w-10 rounded-xl bg-[#222226] border border-[#2c2c31] flex items-center justify-center text-emerald-400 mx-auto">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-[#ececf1]">No Papers Found</h4>
+                  <p className="text-xs text-[#71717a]">
+                    Upload a paper or reset your search filters to view documents.
+                  </p>
+                  <button
+                    onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}
+                    className="px-3 py-1.5 bg-[#222226] hover:bg-[#2c2c31] text-[#ececf1] text-xs font-medium rounded-lg"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredPapers.map((paper) => (
+                    <PaperCard
+                      key={paper.id}
+                      paper={paper}
+                      onDelete={handleDeletePaper}
+                      onSelect={(p) => setSelectedPaper(p)}
+                      onViewPDF={(p) => setPdfPaperObj(p)}
+                      onOpenChat={(p) => selectPaperAndChat(p)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 3. Upload */}
+          {activeTab === 'upload' && (
+            <div className="max-w-3xl mx-auto space-y-6">
+              <FileUpload onUploadSuccess={handleUploadSuccess} />
+            </div>
+          )}
+
+          {/* 4. Literature Review */}
+          {activeTab === 'lit_review' && (
+            <LiteratureReviewView papers={papers} />
+          )}
+
+          {/* 5. Paper Comparison */}
+          {activeTab === 'compare' && (
+            <PaperComparisonView papers={papers} />
+          )}
+
+          {/* 6. Research Gaps */}
+          {activeTab === 'gaps' && (
+            <ResearchGapView papers={papers} />
+          )}
+
+          {/* 7. Summarization */}
+          {activeTab === 'summarize' && (
+            <PaperSummaryView papers={papers} />
+          )}
+
+          {/* 8. Audio Briefing */}
+          {activeTab === 'audio_briefing' && (
+            <AudioBriefingView papers={papers} />
+          )}
+
+          {/* 9. Proposal Critic */}
+          {activeTab === 'critic' && (
+            <ProposalCriticView papers={papers} />
+          )}
+
+          {/* 10. Semantic Search */}
+          {activeTab === 'search' && (
+            <SemanticSearch papers={papers} />
+          )}
+
+          {/* 11. RAG Inspector */}
+          {activeTab === 'rag' && (
+            <RAGInspector papers={papers} />
+          )}
+
+          {/* 12. Direct LLM Synthesis */}
+          {activeTab === 'llm' && (
+            <LLMSynthesis papers={papers} />
+          )}
+
+          {/* 13. Evaluation & Viva */}
+          {activeTab === 'eval' && (
+            <EvaluationVivaView papers={papers} />
+          )}
+
+          {/* 14. Architecture */}
+          {activeTab === 'architecture' && (
+            <div className="max-w-4xl mx-auto space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-[#141417] border border-[#232327] rounded-xl p-5 space-y-3">
+                  <div className="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <Upload className="h-4 w-4" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-white">1. Ingestion & Chunking</h3>
+                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                    PDF text extracted page-by-page, chunked with recursive overlap to maintain semantic continuity.
+                  </p>
+                </div>
+
+                <div className="bg-[#141417] border border-[#232327] rounded-xl p-5 space-y-3">
+                  <div className="h-8 w-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                    <Cpu className="h-4 w-4" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-white">2. Embeddings & ChromaDB</h3>
+                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                    Sentences encoded into 384-dimensional dense vectors stored in local ChromaDB collections.
+                  </p>
+                </div>
+
+                <div className="bg-[#141417] border border-[#232327] rounded-xl p-5 space-y-3">
+                  <div className="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-white">3. Hybrid RAG Synthesis</h3>
+                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                    Dense vector similarity combined with BM25 keyword matching and Groq LLaMA-3 synthesis.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </main>
+      </div>
+
+      {/* Paper Detail Modal */}
+      {selectedPaper && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-[#141417] border border-[#27272a] rounded-2xl p-6 max-w-lg w-full space-y-5 shadow-2xl relative">
+            <button 
+              onClick={() => setSelectedPaper(null)}
+              className="absolute top-5 right-5 p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg hover:bg-[#222226]"
+            >
+              ✕
+            </button>
+
+            <div className="space-y-1.5">
+              <span className="text-[10px] uppercase font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">
+                Document Details
+              </span>
+              <h3 className="text-base font-bold text-[#f4f4f5] leading-snug">{selectedPaper.title}</h3>
+              <p className="text-[11px] font-mono text-[#71717a]">{selectedPaper.filename}</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 bg-[#0e0e11] border border-[#232327] rounded-xl p-3 text-center">
+              <div>
+                <div className="text-[10px] text-[#71717a] font-mono">Pages</div>
+                <div className="text-sm font-bold text-white mt-0.5">{selectedPaper.pages}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-[#71717a] font-mono">Status</div>
+                <div className="text-xs font-bold text-emerald-400 mt-0.5 capitalize">{selectedPaper.status}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-[#71717a] font-mono">Chunks</div>
+                <div className="text-xs font-bold text-cyan-400 mt-0.5">{selectedPaper.chunks_count || '0'}</div>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                onClick={() => handleIndexPaper(selectedPaper.id)}
+                disabled={indexingId === selectedPaper.id}
+                className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+              >
+                {indexingId === selectedPaper.id ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Indexing in ChromaDB...
+                  </>
+                ) : (
+                  <>
+                    <Database className="h-3.5 w-3.5" /> Re-Index in ChromaDB
+                  </>
+                )}
               </button>
 
-              <div className="space-y-2">
-                <span className="text-[10px] uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded-full font-bold">
-                  Paper Details
-                </span>
-                <h3 className="text-xl font-extrabold text-white leading-tight">{selectedPaper.title}</h3>
-                <p className="text-xs font-mono text-slate-400">{selectedPaper.filename}</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 bg-slate-950 border border-slate-800 rounded-2xl p-4 text-center">
-                <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Pages</div>
-                  <div className="text-lg font-bold text-indigo-400 mt-1">{selectedPaper.pages}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Status</div>
-                  <div className="text-sm font-bold text-emerald-400 mt-1 capitalize">{selectedPaper.status}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-semibold">Chunks</div>
-                  <div className="text-sm font-bold text-cyan-400 mt-1">{selectedPaper.chunks_count || '0'}</div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-2.5 pt-2">
-                <button
-                  onClick={() => handleIndexPaper(selectedPaper.id)}
-                  disabled={indexingId === selectedPaper.id}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50"
-                >
-                  {indexingId === selectedPaper.id ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Indexing...
-                    </>
-                  ) : (
-                    <>
-                      <Database className="h-4 w-4" /> Index in Vector Database
-                    </>
-                  )}
-                </button>
-
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => {
                     const p = selectedPaper;
                     setSelectedPaper(null);
                     setPdfPaperObj(p);
                   }}
-                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all"
+                  className="py-2 bg-[#1f1f23] hover:bg-[#28282e] text-zinc-200 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all border border-[#2c2c31]"
                 >
-                  <Eye className="h-4 w-4" /> View PDF
+                  <Eye className="h-3.5 w-3.5 text-emerald-400" /> View PDF
                 </button>
 
                 <button
                   onClick={() => downloadResearchDossier(selectedPaper.id)}
-                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all border border-amber-500/30"
+                  className="py-2 bg-[#1f1f23] hover:bg-[#28282e] text-zinc-200 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all border border-[#2c2c31]"
                 >
-                  <Download className="h-4 w-4" /> Export Research Dossier
+                  <Download className="h-3.5 w-3.5 text-purple-400" /> Export Dossier
                 </button>
+              </div>
 
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => {
                     const p = selectedPaper;
                     setSelectedPaper(null);
                     setVectorPaperObj(p);
                   }}
-                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  className="py-1.5 bg-[#18181b] hover:bg-[#222226] text-[#a1a1aa] text-[11px] rounded-lg flex items-center justify-center gap-1 transition-all border border-[#27272a]"
                 >
-                  <Cpu className="h-4 w-4 text-cyan-400" /> Inspect Embeddings
+                  <Cpu className="h-3 w-3 text-cyan-400" /> Vectors
                 </button>
 
                 <button
@@ -730,9 +824,9 @@ export default function App() {
                     setSelectedPaper(null);
                     setChunkPaperObj(p);
                   }}
-                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  className="py-1.5 bg-[#18181b] hover:bg-[#222226] text-[#a1a1aa] text-[11px] rounded-lg flex items-center justify-center gap-1 transition-all border border-[#27272a]"
                 >
-                  <Scissors className="h-4 w-4 text-indigo-400" /> View Chunks
+                  <Scissors className="h-3 w-3 text-indigo-400" /> Chunks
                 </button>
 
                 <button
@@ -741,92 +835,35 @@ export default function App() {
                     setSelectedPaper(null);
                     setInspectPaper(p);
                   }}
-                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  className="py-1.5 bg-[#18181b] hover:bg-[#222226] text-[#a1a1aa] text-[11px] rounded-lg flex items-center justify-center gap-1 transition-all border border-[#27272a]"
                 >
-                  <FileText className="h-4 w-4 text-indigo-400" /> View Extracted Text
-                </button>
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setSelectedPaper(null)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl"
-                >
-                  Close
+                  <FileText className="h-3 w-3 text-emerald-400" /> Text
                 </button>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* PDF Viewer Modal */}
-        {pdfPaperObj && (
-          <PDFViewerModal paper={pdfPaperObj} onClose={() => setPdfPaperObj(null)} />
-        )}
+      {/* PDF Viewer Modal */}
+      {pdfPaperObj && (
+        <PDFViewerModal paper={pdfPaperObj} onClose={() => setPdfPaperObj(null)} />
+      )}
 
-        {/* Text Inspection Viewer */}
-        {inspectPaper && (
-          <TextViewer paper={inspectPaper} onClose={() => setInspectPaper(null)} />
-        )}
+      {/* Text Inspection Viewer */}
+      {inspectPaper && (
+        <TextViewer paper={inspectPaper} onClose={() => setInspectPaper(null)} />
+      )}
 
-        {/* Chunking Inspector Viewer */}
-        {chunkPaperObj && (
-          <ChunkViewer paper={chunkPaperObj} onClose={() => setChunkPaperObj(null)} />
-        )}
+      {/* Chunking Inspector Viewer */}
+      {chunkPaperObj && (
+        <ChunkViewer paper={chunkPaperObj} onClose={() => setChunkPaperObj(null)} />
+      )}
 
-        {/* Vector Embedding Viewer */}
-        {vectorPaperObj && (
-          <VectorViewer paper={vectorPaperObj} onClose={() => setVectorPaperObj(null)} />
-        )}
-
-        {/* Architecture */}
-        {activeTab === 'architecture' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                    <Upload className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs font-mono px-2 py-1 rounded bg-slate-800 text-slate-400">Ingestion</span>
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">1. Upload & Validate</h3>
-                <p className="text-sm text-slate-400 mb-4">
-                  PDF files are validated for integrity, stored with unique identifiers, and metadata is extracted into a relational database.
-                </p>
-              </div>
-
-              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-                    <Cpu className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs font-mono px-2 py-1 rounded bg-slate-800 text-slate-400">Processing</span>
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">2. Extract, Embed & Index</h3>
-                <p className="text-sm text-slate-400 mb-4">
-                  Text is parsed page-by-page, chunked with overlap, encoded into 384-d vectors, and indexed in ChromaDB for fast cosine similarity retrieval.
-                </p>
-              </div>
-
-              <div className="bg-slate-900/60 border border-emerald-500/40 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                    <Award className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs font-mono px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 font-bold">Synthesis</span>
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">3. RAG Synthesis & Evaluation</h3>
-                <p className="text-sm text-slate-400 mb-4">
-                  Retrieved context is assembled with anti-hallucination guardrails, synthesized via Groq LLM, and evaluated using RAG Triad metrics.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-      </main>
+      {/* Vector Embedding Viewer */}
+      {vectorPaperObj && (
+        <VectorViewer paper={vectorPaperObj} onClose={() => setVectorPaperObj(null)} />
+      )}
 
       {/* API Settings Modal */}
       {showApiModal && (
@@ -877,12 +914,7 @@ export default function App() {
         papers={papers}
       />
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-900/40 py-4 mt-8">
-        <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-          AI Research Paper Assistant — RAG-Powered Academic Intelligence
-        </div>
-      </footer>
     </div>
   );
 }
+

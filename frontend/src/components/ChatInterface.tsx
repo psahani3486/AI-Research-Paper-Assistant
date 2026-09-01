@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Send, 
   Bot, 
   User as UserIcon, 
   Loader2, 
@@ -10,29 +9,52 @@ import {
   ChevronUp, 
   Sparkles, 
   BookOpen,
-  MessageSquare
+  Copy,
+  Check,
+  ArrowUp,
+  FileCheck2,
+  Bookmark
 } from 'lucide-react';
 import { sendChatMessage, getChatHistory, clearChatHistory } from '../services/api';
 import type { Paper, ChatMessageSchema, RAGSourceSchema } from '../types';
 
 interface ChatInterfaceProps {
   papers: Paper[];
+  activePaperId?: string;
+  onPaperChange?: (paperId: string) => void;
+  onOpenPDF?: (paper: Paper) => void;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
-  const [selectedPaperId, setSelectedPaperId] = useState<string>('');
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
+  papers, 
+  activePaperId, 
+  onPaperChange,
+  onOpenPDF 
+}) => {
+  const [selectedPaperId, setSelectedPaperId] = useState<string>(activePaperId || '');
   const [messages, setMessages] = useState<ChatMessageSchema[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [expandedSources, setExpandedSources] = useState<Record<number, boolean>>({});
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync with prop when changed externally
+  useEffect(() => {
+    if (activePaperId && activePaperId !== selectedPaperId) {
+      setSelectedPaperId(activePaperId);
+    }
+  }, [activePaperId]);
 
   // Set default selected paper if available
   useEffect(() => {
     if (papers.length > 0 && !selectedPaperId) {
-      setSelectedPaperId(papers[0].id);
+      const initialId = papers[0].id;
+      setSelectedPaperId(initialId);
+      if (onPaperChange) onPaperChange(initialId);
     }
   }, [papers]);
 
@@ -40,6 +62,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
   useEffect(() => {
     if (selectedPaperId) {
       fetchHistory(selectedPaperId);
+    } else {
+      setMessages([]);
     }
   }, [selectedPaperId]);
 
@@ -48,11 +72,27 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
+  // Auto-resize textarea
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputMessage(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   const fetchHistory = async (paperId: string) => {
     setHistoryLoading(true);
     try {
       const res = await getChatHistory(paperId);
-      setMessages(res.messages);
+      setMessages(res.messages || []);
     } catch (err) {
       console.error('Failed to load chat history:', err);
     } finally {
@@ -60,15 +100,23 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
     }
   };
 
-  const handleSend = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!inputMessage.trim() || !selectedPaperId || loading) return;
+  const handlePaperSelect = (id: string) => {
+    setSelectedPaperId(id);
+    if (onPaperChange) onPaperChange(id);
+  };
 
-    const userText = inputMessage.trim();
+  const handleSend = async (overridePrompt?: string) => {
+    const textToSend = overridePrompt !== undefined ? overridePrompt : inputMessage;
+    if (!textToSend.trim() || !selectedPaperId || loading) return;
+
+    const userText = textToSend.trim();
     setInputMessage('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
     setLoading(true);
 
-    // Optimistic UI update: append user message immediately
+    // Optimistic UI update
     const tempUserMsg: ChatMessageSchema = {
       paper_id: selectedPaperId,
       role: 'user',
@@ -100,98 +148,141 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
     setExpandedSources((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
+  const handleCopyMessage = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(idx);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
   const starterPrompts = [
-    'What is the core methodology and innovation of this paper?',
-    'What dataset was used and what accuracy benchmark was achieved?',
-    'What are the limitations or future research directions mentioned?'
+    {
+      title: 'Methodology & Architecture',
+      desc: 'Explain the core algorithms, models, and technical novelty.',
+      prompt: 'What is the core methodology, model architecture, and innovation introduced in this paper?'
+    },
+    {
+      title: 'Empirical Results & Benchmarks',
+      desc: 'Analyze quantitative metrics, datasets, and baseline comparisons.',
+      prompt: 'What datasets and experimental benchmarks were used, and what were the exact numerical performance results?'
+    },
+    {
+      title: 'Limitations & Future Directions',
+      desc: 'Identify critical constraints, edge cases, and proposed future research.',
+      prompt: 'What are the main limitations, failure modes, and open research directions discussed by the authors?'
+    },
+    {
+      title: 'Mathematical Formulations',
+      desc: 'Extract key equations, loss functions, and theoretical foundations.',
+      prompt: 'Explain the mathematical formulations, loss functions, and optimization objectives used in this research.'
+    }
   ];
 
   const currentPaper = papers.find((p) => p.id === selectedPaperId);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl h-[82vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-5rem)] max-w-5xl mx-auto w-full">
       
-      {/* Top Controls Bar */}
-      <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-900/90 flex flex-wrap items-center justify-between gap-3">
-        
-        {/* Paper Selector */}
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-            <BookOpen className="h-5 w-5" />
+      {/* Top Paper Header Bar */}
+      <div className="px-4 py-2.5 flex items-center justify-between border-b border-[#27272a] bg-[#121215]/80 backdrop-blur-md rounded-t-2xl">
+        <div className="flex items-center gap-2.5 overflow-hidden">
+          <div className="h-8 w-8 rounded-lg bg-[#27272a] flex items-center justify-center text-emerald-400 shrink-0">
+            <BookOpen className="h-4 w-4" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-slate-400 font-semibold">Active Paper:</label>
-              <select
-                value={selectedPaperId}
-                onChange={(e) => setSelectedPaperId(e.target.value)}
-                className="bg-slate-950 border border-slate-800 text-white font-bold text-xs rounded-xl px-3 py-1.5 focus:outline-none focus:border-indigo-500 max-w-[280px] sm:max-w-xs truncate cursor-pointer"
-              >
-                {papers.length === 0 ? (
-                  <option value="">No papers uploaded</option>
-                ) : (
-                  papers.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.title} ({p.pages} Pages)
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xs text-[#a1a1aa] font-medium hidden sm:inline">Active Context:</span>
+            <select
+              value={selectedPaperId}
+              onChange={(e) => handlePaperSelect(e.target.value)}
+              className="bg-[#18181b] hover:bg-[#222226] border border-[#2e2e33] text-[#ececf1] text-xs font-semibold rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500 max-w-[260px] sm:max-w-sm truncate cursor-pointer transition-colors"
+            >
+              {papers.length === 0 ? (
+                <option value="">No papers uploaded</option>
+              ) : (
+                papers.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title} ({p.pages} Pages)
+                  </option>
+                ))
+              )}
+            </select>
+
             {currentPaper && (
-              <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
-                Status: <span className="text-emerald-400 capitalize">{currentPaper.status}</span> • {currentPaper.chunks_count || 0} Chunks
-              </p>
+              <span className={`hidden md:inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md font-mono ${
+                currentPaper.status === 'indexed' 
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+              }`}>
+                {currentPaper.status === 'indexed' ? 'Indexed in ChromaDB' : currentPaper.status}
+              </span>
             )}
           </div>
         </div>
 
-        {/* Clear Chat Action */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
+          {currentPaper && onOpenPDF && (
+            <button
+              onClick={() => onOpenPDF(currentPaper)}
+              className="px-2.5 py-1 text-xs text-[#a1a1aa] hover:text-[#ececf1] bg-[#18181b] hover:bg-[#27272a] border border-[#27272a] rounded-lg flex items-center gap-1.5 transition-colors"
+              title="Open PDF"
+            >
+              <FileCheck2 className="h-3.5 w-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">View PDF</span>
+            </button>
+          )}
+
           {messages.length > 0 && (
             <button
               onClick={handleClearChat}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-rose-500/20 hover:text-rose-300 text-slate-400 text-xs rounded-xl flex items-center gap-1.5 transition-colors"
-              title="Clear Chat History"
+              className="px-2.5 py-1 text-xs text-zinc-400 hover:text-rose-400 bg-[#18181b] hover:bg-rose-500/10 border border-[#27272a] hover:border-rose-500/30 rounded-lg flex items-center gap-1.5 transition-colors"
+              title="Reset current conversation"
             >
-              <Trash2 className="h-3.5 w-3.5" /> Clear Thread
+              <Trash2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Clear Chat</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Chat Messages Thread Body */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-slate-950/60">
+      {/* Main Messages Scroll Container */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 bg-[#0e0e11]">
         
         {historyLoading ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400 text-xs space-y-2">
-            <Loader2 className="h-6 w-6 text-indigo-400 animate-spin" />
-            <span>Loading conversation thread from SQLite DB...</span>
+          <div className="flex flex-col items-center justify-center h-full text-zinc-400 text-xs space-y-3">
+            <Loader2 className="h-5 w-5 text-emerald-400 animate-spin" />
+            <span className="font-mono">Loading conversation context...</span>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center space-y-4 py-8">
-            <div className="h-14 w-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-              <MessageSquare className="h-7 w-7" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-white">Start Interactive Research Chat</h3>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Ask multi-turn follow-up questions. Answers are powered by ChromaDB RAG retrieval and Groq LLaMA-3 with inline page citations.
+          <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-2xl mx-auto text-center space-y-8 py-6">
+            <div className="space-y-3">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto shadow-sm">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-semibold text-[#f4f4f5] tracking-tight">
+                What would you like to explore today?
+              </h2>
+              <p className="text-xs sm:text-sm text-[#71717a] max-w-lg mx-auto leading-relaxed">
+                Ask multi-turn questions about your research paper. Powered by ChromaDB hybrid RAG and verified citations.
               </p>
             </div>
 
-            {/* Starter Prompt Cards */}
-            <div className="w-full space-y-2 pt-2">
-              {starterPrompts.map((sp, idx) => (
+            {/* 4 Clean Research Starter Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left">
+              {starterPrompts.map((item, idx) => (
                 <button
                   key={idx}
-                  onClick={() => {
-                    setInputMessage(sp);
-                  }}
-                  className="w-full text-left bg-slate-900 hover:bg-indigo-600/20 border border-slate-800 hover:border-indigo-500/40 p-3 rounded-2xl text-xs text-slate-300 transition-all flex items-center justify-between group"
+                  onClick={() => handleSend(item.prompt)}
+                  disabled={!selectedPaperId}
+                  className="bg-[#141417] hover:bg-[#1c1c21] border border-[#27272a] hover:border-[#3f3f46] p-4 rounded-xl text-left transition-all duration-200 group flex flex-col justify-between space-y-2 shadow-sm disabled:opacity-50"
                 >
-                  <span>"{sp}"</span>
-                  <Sparkles className="h-3.5 w-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs font-semibold text-[#ececf1] group-hover:text-emerald-400 transition-colors">
+                      {item.title}
+                    </span>
+                    <Sparkles className="h-3.5 w-3.5 text-[#71717a] group-hover:text-emerald-400 transition-colors" />
+                  </div>
+                  <p className="text-[11px] text-[#71717a] leading-normal line-clamp-2">
+                    {item.desc}
+                  </p>
                 </button>
               ))}
             </div>
@@ -200,40 +291,39 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
           messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`flex items-start gap-3 ${
+              className={`flex items-start gap-3.5 ${
                 msg.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
               {/* AI Avatar */}
               {msg.role === 'assistant' && (
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 p-0.5 shrink-0 shadow-md mt-1">
-                  <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-amber-400" />
-                  </div>
+                <div className="h-8 w-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+                  <Bot className="h-4 w-4" />
                 </div>
               )}
 
-              {/* Message Bubble */}
+              {/* Message Content Container */}
               <div
-                className={`max-w-[85%] sm:max-w-[75%] rounded-3xl p-4 space-y-2 text-xs leading-relaxed ${
+                className={`group relative ${
                   msg.role === 'user'
-                    ? 'bg-indigo-600 text-white rounded-tr-sm shadow-lg shadow-indigo-600/20 font-medium'
-                    : 'bg-slate-900 border border-slate-800 text-slate-100 rounded-tl-sm shadow-lg'
+                    ? 'bg-[#27272a] text-[#f4f4f5] rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%] sm:max-w-[75%] shadow-sm'
+                    : 'bg-[#141417] border border-[#232327] text-[#ececf1] rounded-2xl rounded-tl-sm px-5 py-4 max-w-[92%] sm:max-w-[85%] space-y-3 shadow-md'
                 }`}
               >
-                <p className="whitespace-pre-wrap font-sans text-xs">
+                {/* Message Text */}
+                <div className="text-xs sm:text-[13px] leading-relaxed whitespace-pre-wrap font-sans">
                   {msg.message}
-                </p>
+                </div>
 
-                {/* Collapsible Source Citations Panel for AI Messages */}
+                {/* Collapsible Verified Citations */}
                 {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
-                  <div className="pt-2 border-t border-slate-800/80">
+                  <div className="pt-2.5 border-t border-[#27272a]/70">
                     <button
                       onClick={() => toggleSources(idx)}
-                      className="text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 focus:outline-none"
+                      className="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1.5 focus:outline-none transition-colors"
                     >
                       <FileText className="h-3 w-3" />
-                      <span>{msg.sources.length} Cited Sources</span>
+                      <span>{msg.sources.length} Verified Citations</span>
                       {expandedSources[idx] ? (
                         <ChevronUp className="h-3 w-3" />
                       ) : (
@@ -242,14 +332,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
                     </button>
 
                     {expandedSources[idx] && (
-                      <div className="mt-2 space-y-2 font-mono text-[11px]">
+                      <div className="mt-2.5 space-y-2 font-mono text-[11px]">
                         {msg.sources.map((src: RAGSourceSchema, sIdx: number) => (
-                          <div key={sIdx} className="bg-slate-950 border border-slate-800 rounded-xl p-2.5 space-y-1">
-                            <div className="flex items-center justify-between text-slate-300 font-bold">
-                              <span className="truncate max-w-[180px]">{src.paper_name}</span>
-                              <span className="text-amber-400 font-normal">Page {src.page_number}</span>
+                          <div key={sIdx} className="bg-[#0e0e11] border border-[#27272a] rounded-lg p-3 space-y-1.5">
+                            <div className="flex items-center justify-between text-[#ececf1] font-semibold text-[11px]">
+                              <span className="truncate max-w-[200px] text-zinc-300">{src.paper_name}</span>
+                              <span className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10px]">
+                                Page {src.page_number}
+                              </span>
                             </div>
-                            <p className="text-slate-400 line-clamp-2 text-[10px]">
+                            <p className="text-[#a1a1aa] font-sans text-[11px] leading-normal italic">
                               "{src.text_snippet}"
                             </p>
                           </div>
@@ -258,11 +350,35 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
                     )}
                   </div>
                 )}
+
+                {/* Action buttons (Copy) for Assistant */}
+                {msg.role === 'assistant' && (
+                  <div className="flex items-center justify-between pt-1 text-[#71717a]">
+                    <span className="text-[10px] font-mono text-zinc-500">RAG Synthesized</span>
+                    <button
+                      onClick={() => handleCopyMessage(msg.message, idx)}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-[#ececf1] hover:bg-[#27272a] rounded transition-all text-xs flex items-center gap-1"
+                      title="Copy message"
+                    >
+                      {copiedIndex === idx ? (
+                        <>
+                          <Check className="h-3 w-3 text-emerald-400" />
+                          <span className="text-[10px] text-emerald-400">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3" />
+                          <span className="text-[10px]">Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* User Avatar */}
               {msg.role === 'user' && (
-                <div className="h-9 w-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0 mt-1">
+                <div className="h-8 w-8 rounded-full bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-zinc-300 shrink-0 mt-0.5">
                   <UserIcon className="h-4 w-4" />
                 </div>
               )}
@@ -270,17 +386,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
           ))
         )}
 
-        {/* Loading Indicator for AI Response */}
+        {/* Loading Bubble */}
         {loading && (
-          <div className="flex items-start gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 p-0.5 shrink-0 shadow-md">
-              <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Bot className="h-4 w-4 text-amber-400 animate-pulse" />
-              </div>
+          <div className="flex items-start gap-3.5">
+            <div className="h-8 w-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+              <Bot className="h-4 w-4 animate-pulse" />
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl rounded-tl-sm p-4 text-xs text-slate-400 flex items-center gap-2">
-              <Loader2 className="h-4 w-4 text-indigo-400 animate-spin" />
-              <span>Retrieving ChromaDB vectors & generating response via Groq LLaMA-3...</span>
+            <div className="bg-[#141417] border border-[#232327] rounded-2xl rounded-tl-sm px-4 py-3 text-xs text-[#a1a1aa] flex items-center gap-2.5">
+              <Loader2 className="h-4 w-4 text-emerald-400 animate-spin" />
+              <span>Retrieving embeddings from ChromaDB and synthesizing response...</span>
             </div>
           </div>
         )}
@@ -288,35 +402,62 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ papers }) => {
         <div ref={chatEndRef} />
       </div>
 
-      {/* Chat Input Bar */}
-      <form onSubmit={handleSend} className="p-4 border-t border-slate-800 bg-slate-900">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
+      {/* Floating ChatGPT-Style Prompt Input Bar */}
+      <div className="p-3 sm:p-4 bg-[#0e0e11] border-t border-[#1f1f23] rounded-b-2xl">
+        <div className="relative bg-[#18181b] border border-[#2c2c31] focus-within:border-[#3f3f46] rounded-2xl p-2.5 transition-all shadow-lg flex flex-col gap-2">
+          
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
             value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
+            onChange={handleTextareaChange}
+            onKeyDown={handleKeyDown}
+            rows={1}
             placeholder={
               selectedPaperId 
-                ? "Ask a question about this research paper..." 
-                : "Please select a paper above to start chatting"
+                ? "Ask anything about this research paper... (Press Enter to send, Shift + Enter for newline)" 
+                : "Please select an active paper above to start chatting"
             }
             disabled={!selectedPaperId || loading}
-            className="flex-1 bg-slate-950 border border-slate-800 text-white placeholder-slate-500 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:opacity-50 transition-all"
+            className="w-full bg-transparent text-[#ececf1] placeholder-[#71717a] text-xs sm:text-sm resize-none focus:outline-none px-2 py-1 max-h-[160px] disabled:opacity-50"
           />
 
-          <button
-            type="submit"
-            disabled={!selectedPaperId || !inputMessage.trim() || loading}
-            className="h-10 w-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-all shrink-0"
-          >
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </button>
+          {/* Bottom Bar inside Prompt Card */}
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2">
+              {currentPaper && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#27272a] border border-[#3f3f46] text-[11px] text-[#a1a1aa]">
+                  <Bookmark className="h-3 w-3 text-emerald-400" />
+                  <span className="truncate max-w-[180px] sm:max-w-[280px]">{currentPaper.title}</span>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => handleSend()}
+              disabled={!selectedPaperId || !inputMessage.trim() || loading}
+              className={`h-8 w-8 rounded-full flex items-center justify-center transition-all ${
+                inputMessage.trim() && !loading
+                  ? 'bg-emerald-500 hover:bg-emerald-400 text-black shadow-md shadow-emerald-500/20'
+                  : 'bg-[#27272a] text-[#71717a] cursor-not-allowed'
+              }`}
+              title="Send message"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+              ) : (
+                <ArrowUp className="h-4 w-4 stroke-[2.5]" />
+              )}
+            </button>
+          </div>
         </div>
-      </form>
+
+        {/* Disclaimer Footer */}
+        <p className="text-center text-[10px] text-[#52525b] mt-2">
+          ScholarGPT produces verified citations based on ChromaDB vector embeddings. Always verify critical facts from the original paper.
+        </p>
+      </div>
     </div>
   );
 };
+
