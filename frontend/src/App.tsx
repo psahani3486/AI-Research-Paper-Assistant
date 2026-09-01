@@ -23,8 +23,7 @@ import {
   Activity,
   PanelLeftClose,
   PanelLeft,
-  Headphones,
-  Palette
+  Headphones
 } from 'lucide-react';
 import { 
   checkSystemHealthWithRetry, 
@@ -52,8 +51,6 @@ import { AudioBriefingView } from './components/AudioBriefingView';
 import { ExportModal } from './components/ExportModal';
 import type { Paper } from './types';
 
-export type AppTheme = 'indigo' | 'mint' | 'cyan' | 'light';
-
 type StudioMode = 
   | 'chat' 
   | 'library' 
@@ -63,21 +60,6 @@ type StudioMode =
   | 'audio_briefing';
 
 export default function App() {
-  // Theme State
-  const [theme, setTheme] = useState<AppTheme>(() => {
-    return (localStorage.getItem('scholargpt_theme') as AppTheme) || 'indigo';
-  });
-
-  const handleThemeChange = (newTheme: AppTheme) => {
-    setTheme(newTheme);
-    localStorage.setItem('scholargpt_theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-  };
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionState, setConnectionState] = useState<'online' | 'waking' | 'offline'>('waking');
@@ -254,10 +236,7 @@ export default function App() {
   const currentModeObj = studioModes.find((m) => m.id === activeTab) || studioModes[0];
 
   return (
-    <div 
-      data-theme={theme}
-      className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)] flex flex-row overflow-hidden font-sans transition-colors duration-250"
-    >
+    <div className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)] flex flex-row overflow-hidden font-sans">
       
       {/* Dynamic Left Sidebar */}
       <aside 
@@ -541,22 +520,6 @@ export default function App() {
                 <span>PDF</span>
               </button>
             )}
-
-            {/* Live Theme Switcher Dropdown */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--bg-element)] border border-[var(--border-subtle)] hover:border-[var(--border-highlight)] transition-colors">
-              <Palette className="h-3.5 w-3.5 text-[var(--accent-text)]" />
-              <select
-                value={theme}
-                onChange={(e) => handleThemeChange(e.target.value as AppTheme)}
-                className="bg-transparent text-xs font-semibold text-[var(--text-primary)] focus:outline-none cursor-pointer pr-1"
-                title="Switch Theme Color"
-              >
-                <option value="indigo" className="bg-[#121216] text-white">⚡ Indigo (Linear)</option>
-                <option value="mint" className="bg-[#17191e] text-white">🟢 Mint (ChatGPT)</option>
-                <option value="cyan" className="bg-[#0e1524] text-white">🌌 Cyan (Perplexity)</option>
-                <option value="light" className="bg-white text-slate-900">☀️ Clean Light</option>
-              </select>
-            </div>
 
             {/* Quick Export Dossier Button */}
             <button
