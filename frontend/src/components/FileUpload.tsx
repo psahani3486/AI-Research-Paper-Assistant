@@ -98,17 +98,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
   };
 
   return (
-    <div className="w-full bg-[#181816] border border-[#282724] rounded-2xl p-6 shadow-md space-y-5">
+    <div className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6 shadow-md space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-[#faf8f5] flex items-center gap-2">
-            <UploadCloud className="h-5 w-5 text-amber-400" /> Upload Academic Papers
+          <h3 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-2">
+            <UploadCloud className="h-5 w-5 text-[var(--accent-text)]" /> Upload Academic Papers
           </h3>
-          <p className="text-xs text-[#8c887e] mt-0.5">
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
             PDFs will be parsed into text chunks, indexed in ChromaDB vector storage, and ready for grounded research chat.
           </p>
         </div>
-        <span className="text-[11px] bg-[#242320] text-[#a8a49c] px-2.5 py-1 rounded-md font-mono border border-[#33322e]">
+        <span className="text-[11px] bg-[var(--bg-element)] text-[var(--text-secondary)] px-2.5 py-1 rounded-md font-mono border border-[var(--border-subtle)]">
           Max 25 MB • PDF
         </span>
       </div>
@@ -122,8 +122,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         onClick={() => fileInputRef.current?.click()}
         className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
           dragActive
-            ? 'border-amber-500 bg-amber-500/5 scale-[1.01]'
-            : 'border-[#33322e] hover:border-[#474540] bg-[#131312] hover:bg-[#181816]'
+            ? 'border-[var(--accent-primary)] bg-[var(--accent-subtle)] scale-[1.01]'
+            : 'border-[var(--border-subtle)] hover:border-[var(--accent-border)] bg-[var(--bg-canvas)] hover:bg-[var(--bg-element)]'
         }`}
       >
         <input
@@ -135,28 +135,28 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         />
 
         <div className="flex flex-col items-center justify-center space-y-3">
-          <div className="h-11 w-11 rounded-xl bg-[#242320] border border-[#33322e] flex items-center justify-center text-amber-400">
+          <div className="h-11 w-11 rounded-xl bg-[var(--accent-subtle)] border border-[var(--accent-border)] flex items-center justify-center text-[var(--accent-text)]">
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs sm:text-sm font-medium text-[#ede8e1]">
-              Drag and drop your research PDF here, or <span className="text-amber-400 hover:underline">browse files</span>
+            <p className="text-xs sm:text-sm font-medium text-[var(--text-primary)]">
+              Drag and drop your research PDF here, or <span className="text-[var(--accent-text)] hover:underline">browse files</span>
             </p>
-            <p className="text-[11px] text-[#8c887e] mt-1">Supports IEEE, arXiv, Springer, Nature, ACM, and custom papers</p>
+            <p className="text-[11px] text-[var(--text-secondary)] mt-1">Supports IEEE, arXiv, Springer, Nature, ACM, and custom papers</p>
           </div>
         </div>
       </div>
 
       {/* Selected File Preview Box */}
       {selectedFile && (
-        <div className="bg-[#131312] border border-[#33322e] rounded-xl p-3.5 flex items-center justify-between">
+        <div className="bg-[var(--bg-canvas)] border border-[var(--border-subtle)] rounded-xl p-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-mono font-bold text-xs">
+            <div className="h-9 w-9 rounded-lg bg-[var(--accent-subtle)] border border-[var(--accent-border)] flex items-center justify-center text-[var(--accent-text)] font-mono font-bold text-xs">
               PDF
             </div>
             <div>
-              <p className="text-xs font-semibold text-[#faf8f5] truncate max-w-sm sm:max-w-md">{selectedFile.name}</p>
-              <p className="text-[10px] text-[#8c887e] font-mono">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+              <p className="text-xs font-semibold text-[var(--text-primary)] truncate max-w-sm sm:max-w-md">{selectedFile.name}</p>
+              <p className="text-[10px] text-[var(--text-secondary)] font-mono">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
             </div>
           </div>
 
@@ -167,7 +167,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                 setSelectedFile(null);
               }}
               disabled={uploading}
-              className="p-1.5 text-stone-400 hover:text-stone-200 hover:bg-[#242320] rounded-md transition-colors"
+              className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded-md transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -177,7 +177,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                 handleUpload();
               }}
               disabled={uploading}
-              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-semibold rounded-lg shadow-xs flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-1.5 bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white text-xs font-semibold rounded-lg shadow-xs flex items-center gap-1.5 transition-all"
             >
               {uploading ? (
                 <>
@@ -201,8 +201,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
 
       {/* Success Alert */}
       {successMsg && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-center gap-2.5 text-xs text-amber-300">
-          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0" />
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-center gap-2.5 text-xs text-emerald-300">
+          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}

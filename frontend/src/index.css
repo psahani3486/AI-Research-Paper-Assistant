@@ -5,19 +5,118 @@
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --font-serif: 'Lora', Georgia, Cambria, 'Times New Roman', Times, serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* Default: Linear / Jet Black & Electric Indigo */
+    --bg-canvas: #09090b;
+    --bg-surface: #121216;
+    --bg-element: #18181f;
+    --bg-hover: #22222b;
+    --border-subtle: #23232c;
+    --border-highlight: #343442;
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1b0;
+    --text-muted: #6b6b7b;
+    --accent-primary: #6366f1;
+    --accent-hover: #4f46e5;
+    --accent-subtle: rgba(99, 102, 241, 0.12);
+    --accent-border: rgba(99, 102, 241, 0.28);
+    --accent-text: #818cf8;
+    --selection-bg: #6366f1;
+    --selection-fg: #ffffff;
+  }
+
+  /* Theme 1: Linear Electric Indigo (Default) */
+  [data-theme="indigo"] {
+    --bg-canvas: #09090b;
+    --bg-surface: #121216;
+    --bg-element: #18181f;
+    --bg-hover: #22222b;
+    --border-subtle: #23232c;
+    --border-highlight: #343442;
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1b0;
+    --text-muted: #6b6b7b;
+    --accent-primary: #6366f1;
+    --accent-hover: #4f46e5;
+    --accent-subtle: rgba(99, 102, 241, 0.12);
+    --accent-border: rgba(99, 102, 241, 0.28);
+    --accent-text: #818cf8;
+    --selection-bg: #6366f1;
+    --selection-fg: #ffffff;
+  }
+
+  /* Theme 2: Official ChatGPT Mint */
+  [data-theme="mint"] {
+    --bg-canvas: #0d0f12;
+    --bg-surface: #17191e;
+    --bg-element: #1f2229;
+    --bg-hover: #292d37;
+    --border-subtle: #272a33;
+    --border-highlight: #393e4d;
+    --text-primary: #ffffff;
+    --text-secondary: #9da3b4;
+    --text-muted: #646a7a;
+    --accent-primary: #10a37f;
+    --accent-hover: #0e8c6d;
+    --accent-subtle: rgba(16, 163, 127, 0.14);
+    --accent-border: rgba(16, 163, 127, 0.28);
+    --accent-text: #34d399;
+    --selection-bg: #10a37f;
+    --selection-fg: #ffffff;
+  }
+
+  /* Theme 3: Deep Midnight Cyan */
+  [data-theme="cyan"] {
+    --bg-canvas: #070b12;
+    --bg-surface: #0e1524;
+    --bg-element: #141f35;
+    --bg-hover: #1c2b48;
+    --border-subtle: #1c273e;
+    --border-highlight: #283959;
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #566782;
+    --accent-primary: #0ea5e9;
+    --accent-hover: #0284c7;
+    --accent-subtle: rgba(14, 165, 233, 0.14);
+    --accent-border: rgba(14, 165, 233, 0.3);
+    --accent-text: #38bdf8;
+    --selection-bg: #0ea5e9;
+    --selection-fg: #ffffff;
+  }
+
+  /* Theme 4: Notion / Apple Clean Minimal Light */
+  [data-theme="light"] {
+    --bg-canvas: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-element: #f1f5f9;
+    --bg-hover: #e2e8f0;
+    --border-subtle: #e2e8f0;
+    --border-highlight: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --accent-primary: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-subtle: rgba(37, 99, 235, 0.1);
+    --accent-border: rgba(37, 99, 235, 0.25);
+    --accent-text: #2563eb;
+    --selection-bg: #2563eb;
+    --selection-fg: #ffffff;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #131312;
-    color: #ede8e1;
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
     letter-spacing: -0.011em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    selection-background-color: #d97706;
-    selection-color: #131312;
+    selection-background-color: var(--selection-bg);
+    selection-color: var(--selection-fg);
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   code, pre {
@@ -25,7 +124,7 @@
   }
 }
 
-/* Editorial Warm Sleek Scrollbar */
+/* Custom Sleek Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -36,10 +135,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(237, 232, 225, 0.12);
+  background: rgba(160, 160, 180, 0.15);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(237, 232, 225, 0.25);
+  background: rgba(160, 160, 180, 0.35);
 }

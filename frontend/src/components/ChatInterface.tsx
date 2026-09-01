@@ -183,17 +183,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     <div className="flex flex-col h-[calc(100vh-5rem)] max-w-5xl mx-auto w-full">
       
       {/* Top Paper Header Bar */}
-      <div className="px-4 py-2.5 flex items-center justify-between border-b border-[#282724] bg-[#181816]/90 backdrop-blur-md rounded-t-2xl">
+      <div className="px-4 py-3 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--bg-surface)] backdrop-blur-md rounded-t-2xl">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <div className="h-8 w-8 rounded-lg bg-[#242320] border border-[#302e2a] flex items-center justify-center text-amber-400 shrink-0">
+          <div className="h-8 w-8 rounded-lg bg-[var(--accent-subtle)] border border-[var(--accent-border)] flex items-center justify-center text-[var(--accent-text)] shrink-0">
             <BookOpen className="h-4 w-4" />
           </div>
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs text-[#9c988f] font-medium hidden sm:inline">Active Context:</span>
+            <span className="text-xs text-[var(--text-secondary)] font-medium hidden sm:inline">Active Context:</span>
             <select
               value={selectedPaperId}
               onChange={(e) => handlePaperSelect(e.target.value)}
-              className="bg-[#1c1b18] hover:bg-[#242320] border border-[#302e2a] text-[#ede8e1] text-xs font-semibold rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-500 max-w-[260px] sm:max-w-sm truncate cursor-pointer transition-colors"
+              className="bg-[var(--bg-element)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-xs font-semibold rounded-lg px-3 py-1.5 focus:outline-none focus:border-[var(--accent-primary)] max-w-[260px] sm:max-w-sm truncate cursor-pointer transition-colors"
             >
               {papers.length === 0 ? (
                 <option value="">No papers uploaded</option>
@@ -209,8 +209,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             {currentPaper && (
               <span className={`hidden md:inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md font-mono ${
                 currentPaper.status === 'indexed' 
-                  ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                  : 'bg-stone-800 text-stone-400 border border-stone-700'
+                  ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)] border border-[var(--accent-border)]'
+                  : 'bg-[var(--bg-element)] text-[var(--text-muted)] border border-[var(--border-subtle)]'
               }`}>
                 {currentPaper.status === 'indexed' ? 'Indexed in ChromaDB' : currentPaper.status}
               </span>
@@ -222,10 +222,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           {currentPaper && onOpenPDF && (
             <button
               onClick={() => onOpenPDF(currentPaper)}
-              className="px-2.5 py-1 text-xs text-[#9c988f] hover:text-[#ede8e1] bg-[#1c1b18] hover:bg-[#242320] border border-[#282724] rounded-lg flex items-center gap-1.5 transition-colors"
+              className="px-2.5 py-1 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--bg-element)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] rounded-lg flex items-center gap-1.5 transition-colors"
               title="Open PDF"
             >
-              <FileCheck2 className="h-3.5 w-3.5 text-amber-400" />
+              <FileCheck2 className="h-3.5 w-3.5 text-[var(--accent-text)]" />
               <span className="hidden sm:inline">View PDF</span>
             </button>
           )}
@@ -233,7 +233,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           {messages.length > 0 && (
             <button
               onClick={handleClearChat}
-              className="px-2.5 py-1 text-xs text-stone-400 hover:text-rose-400 bg-[#1c1b18] hover:bg-rose-500/10 border border-[#282724] hover:border-rose-500/30 rounded-lg flex items-center gap-1.5 transition-colors"
+              className="px-2.5 py-1 text-xs text-[var(--text-muted)] hover:text-rose-400 bg-[var(--bg-element)] hover:bg-rose-500/10 border border-[var(--border-subtle)] hover:border-rose-500/30 rounded-lg flex items-center gap-1.5 transition-colors"
               title="Reset current conversation"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -244,23 +244,23 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Main Messages Scroll Container */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 space-y-7 bg-[#131312]">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 space-y-7 bg-[var(--bg-canvas)]">
         
         {historyLoading ? (
-          <div className="flex flex-col items-center justify-center h-full text-stone-400 text-sm space-y-3">
-            <Loader2 className="h-6 w-6 text-amber-400 animate-spin" />
+          <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)] text-sm space-y-3">
+            <Loader2 className="h-6 w-6 text-[var(--accent-text)] animate-spin" />
             <span className="font-mono text-xs">Loading conversation context...</span>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-3xl mx-auto text-center space-y-9 py-8">
             <div className="space-y-3.5">
-              <div className="h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 mx-auto shadow-sm transition-transform hover:scale-105">
+              <div className="h-14 w-14 rounded-2xl bg-[var(--accent-subtle)] border border-[var(--accent-border)] flex items-center justify-center text-[var(--accent-text)] mx-auto shadow-sm transition-transform hover:scale-105">
                 <Sparkles className="h-7 w-7" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#faf8f5] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] tracking-tight">
                 What would you like to explore today?
               </h2>
-              <p className="text-sm sm:text-[15px] text-[#9c988f] max-w-xl mx-auto leading-relaxed">
+              <p className="text-sm sm:text-[15px] text-[var(--text-secondary)] max-w-xl mx-auto leading-relaxed">
                 Ask deep technical questions about your research paper. Powered by ChromaDB hybrid RAG and verified citations.
               </p>
             </div>
@@ -272,15 +272,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   key={idx}
                   onClick={() => handleSend(item.prompt)}
                   disabled={!selectedPaperId}
-                  className="bg-[#181816] hover:bg-[#22211e] border border-[#2b2a26] hover:border-amber-500/40 p-5 rounded-2xl text-left transition-all duration-200 group flex flex-col justify-between space-y-2.5 shadow-xs hover:-translate-y-0.5 disabled:opacity-50"
+                  className="bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--accent-border)] p-5 rounded-2xl text-left transition-all duration-200 group flex flex-col justify-between space-y-2.5 shadow-xs hover:-translate-y-0.5 disabled:opacity-50"
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-sm font-semibold text-[#faf8f5] group-hover:text-amber-400 transition-colors">
+                    <span className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-text)] transition-colors">
                       {item.title}
                     </span>
-                    <Sparkles className="h-4 w-4 text-[#757168] group-hover:text-amber-400 transition-colors" />
+                    <Sparkles className="h-4 w-4 text-[var(--text-muted)] group-hover:text-[var(--accent-text)] transition-colors" />
                   </div>
-                  <p className="text-xs text-[#9c988f] leading-relaxed">
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                     {item.desc}
                   </p>
                 </button>
@@ -297,7 +297,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             >
               {/* AI Avatar */}
               {msg.role === 'assistant' && (
-                <div className="h-9 w-9 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-1 shadow-xs">
+                <div className="h-9 w-9 rounded-full bg-[var(--accent-subtle)] border border-[var(--accent-border)] flex items-center justify-center text-[var(--accent-text)] shrink-0 mt-1 shadow-xs">
                   <Bot className="h-5 w-5" />
                 </div>
               )}
@@ -306,21 +306,21 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <div
                 className={`group relative ${
                   msg.role === 'user'
-                    ? 'bg-[#292825] text-[#ffffff] rounded-2xl rounded-tr-sm px-5 py-3.5 max-w-[85%] sm:max-w-[75%] shadow-xs font-medium text-sm sm:text-[15px] leading-relaxed'
-                    : 'bg-[#181816] border border-[#282724] text-[#faf8f5] rounded-2xl rounded-tl-sm px-6 py-5 max-w-[95%] sm:max-w-[88%] space-y-4 shadow-sm'
+                    ? 'bg-[var(--bg-element)] border border-[var(--border-highlight)] text-[var(--text-primary)] rounded-2xl rounded-tr-sm px-5 py-3.5 max-w-[85%] sm:max-w-[75%] shadow-xs font-medium text-sm sm:text-[15px] leading-relaxed'
+                    : 'bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-2xl rounded-tl-sm px-6 py-5 max-w-[95%] sm:max-w-[88%] space-y-4 shadow-sm'
                 }`}
               >
                 {/* Message Text with Larger Font & Great Line Height */}
-                <div className="text-[15px] sm:text-base leading-relaxed sm:leading-[1.75] whitespace-pre-wrap font-sans text-[#faf8f5] selection:bg-amber-500 selection:text-black">
+                <div className="text-[15px] sm:text-base leading-relaxed sm:leading-[1.75] whitespace-pre-wrap font-sans text-[var(--text-primary)]">
                   {msg.message}
                 </div>
 
                 {/* Collapsible Verified Citations */}
                 {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
-                  <div className="pt-3 border-t border-[#2a2926]">
+                  <div className="pt-3 border-t border-[var(--border-subtle)]">
                     <button
                       onClick={() => toggleSources(idx)}
-                      className="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1.5 focus:outline-none transition-colors"
+                      className="text-xs text-[var(--accent-text)] hover:underline font-semibold flex items-center gap-1.5 focus:outline-none transition-colors"
                     >
                       <FileText className="h-3.5 w-3.5" />
                       <span>{msg.sources.length} Verified Page Citations</span>
@@ -334,14 +334,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     {expandedSources[idx] && (
                       <div className="mt-3 space-y-2.5 font-mono text-xs">
                         {msg.sources.map((src: RAGSourceSchema, sIdx: number) => (
-                          <div key={sIdx} className="bg-[#121211] border border-[#2b2a26] rounded-xl p-3.5 space-y-1.5">
-                            <div className="flex items-center justify-between text-[#faf8f5] font-semibold text-xs">
-                              <span className="truncate max-w-[260px] text-stone-200">{src.paper_name}</span>
-                              <span className="text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded text-[11px] border border-amber-500/25">
+                          <div key={sIdx} className="bg-[var(--bg-canvas)] border border-[var(--border-subtle)] rounded-xl p-3.5 space-y-1.5">
+                            <div className="flex items-center justify-between text-[var(--text-primary)] font-semibold text-xs">
+                              <span className="truncate max-w-[260px] text-[var(--text-secondary)]">{src.paper_name}</span>
+                              <span className="text-[var(--accent-text)] bg-[var(--accent-subtle)] px-2 py-0.5 rounded text-[11px] border border-[var(--accent-border)]">
                                 Page {src.page_number}
                               </span>
                             </div>
-                            <p className="text-[#a8a49c] font-sans text-xs sm:text-[13px] leading-relaxed italic">
+                            <p className="text-[var(--text-secondary)] font-sans text-xs sm:text-[13px] leading-relaxed italic">
                               "{src.text_snippet}"
                             </p>
                           </div>
@@ -353,17 +353,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
                 {/* Action buttons (Copy) for Assistant */}
                 {msg.role === 'assistant' && (
-                  <div className="flex items-center justify-between pt-1.5 text-[#8c887e]">
-                    <span className="text-[11px] font-mono text-stone-500">ChromaDB RAG Grounded</span>
+                  <div className="flex items-center justify-between pt-1.5 text-[var(--text-muted)]">
+                    <span className="text-[11px] font-mono">ChromaDB RAG Grounded</span>
                     <button
                       onClick={() => handleCopyMessage(msg.message, idx)}
-                      className="opacity-80 group-hover:opacity-100 px-2 py-1 hover:text-[#ede8e1] hover:bg-[#242320] rounded-md transition-all text-xs flex items-center gap-1.5"
+                      className="opacity-80 group-hover:opacity-100 px-2 py-1 hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] rounded-md transition-all text-xs flex items-center gap-1.5"
                       title="Copy message"
                     >
                       {copiedIndex === idx ? (
                         <>
-                          <Check className="h-3.5 w-3.5 text-amber-400" />
-                          <span className="text-xs text-amber-400 font-medium">Copied!</span>
+                          <Check className="h-3.5 w-3.5 text-[var(--accent-text)]" />
+                          <span className="text-xs text-[var(--accent-text)] font-medium">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -378,7 +378,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
               {/* User Avatar */}
               {msg.role === 'user' && (
-                <div className="h-9 w-9 rounded-full bg-[#292825] border border-[#383733] flex items-center justify-center text-stone-200 shrink-0 mt-1 shadow-xs">
+                <div className="h-9 w-9 rounded-full bg-[var(--bg-element)] border border-[var(--border-highlight)] flex items-center justify-center text-[var(--text-primary)] shrink-0 mt-1 shadow-xs">
                   <UserIcon className="h-5 w-5" />
                 </div>
               )}
@@ -389,11 +389,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* Loading Bubble */}
         {loading && (
           <div className="flex items-start gap-4">
-            <div className="h-9 w-9 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-1">
+            <div className="h-9 w-9 rounded-full bg-[var(--accent-subtle)] border border-[var(--accent-border)] flex items-center justify-center text-[var(--accent-text)] shrink-0 mt-1">
               <Bot className="h-5 w-5 animate-pulse" />
             </div>
-            <div className="bg-[#181816] border border-[#282724] rounded-2xl rounded-tl-sm px-5 py-4 text-sm text-[#a8a49c] flex items-center gap-3 shadow-xs">
-              <Loader2 className="h-4 w-4 text-amber-400 animate-spin" />
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl rounded-tl-sm px-5 py-4 text-sm text-[var(--text-secondary)] flex items-center gap-3 shadow-xs">
+              <Loader2 className="h-4 w-4 text-[var(--accent-text)] animate-spin" />
               <span>Retrieving embeddings from ChromaDB and synthesizing response...</span>
             </div>
           </div>
@@ -403,12 +403,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Floating Prompt Input Bar */}
-      <div className="p-3 sm:p-5 bg-[#131312] border-t border-[#201f1c] rounded-b-2xl space-y-2">
+      <div className="p-3 sm:p-5 bg-[var(--bg-canvas)] border-t border-[var(--border-subtle)] rounded-b-2xl space-y-2">
         
         {/* Quick Suggest Chips for Delightful Interactivity */}
         {selectedPaperId && !loading && (
           <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
-            <span className="text-[11px] text-[#757168] font-mono shrink-0">Quick prompt:</span>
+            <span className="text-[11px] text-[var(--text-muted)] font-mono shrink-0">Quick prompt:</span>
             {[
               { label: '⚡ Core Findings', query: 'What are the core findings, contributions, and key takeaways of this research paper?' },
               { label: '🔬 Methodology', query: 'Explain the proposed methodology, pipeline architecture, and mathematical foundations in simple terms.' },
@@ -418,7 +418,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <button
                 key={cIdx}
                 onClick={() => handleSend(chip.query)}
-                className="px-3 py-1 bg-[#181816] hover:bg-[#242320] border border-[#2b2a26] hover:border-amber-500/40 text-stone-300 hover:text-amber-300 rounded-full text-xs shrink-0 transition-all font-medium"
+                className="px-3 py-1 bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-subtle)] hover:border-[var(--accent-border)] text-[var(--text-secondary)] hover:text-[var(--accent-text)] rounded-full text-xs shrink-0 transition-all font-medium"
               >
                 {chip.label}
               </button>
@@ -426,7 +426,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         )}
 
-        <div className="relative bg-[#181816] border border-[#2b2a26] focus-within:border-amber-500/50 rounded-2xl p-3 transition-all shadow-md flex flex-col gap-2.5">
+        <div className="relative bg-[var(--bg-surface)] border border-[var(--border-subtle)] focus-within:border-[var(--accent-border)] rounded-2xl p-3 transition-all shadow-md flex flex-col gap-2.5">
           
           {/* Textarea with Larger, Comfortable Typing Font */}
           <textarea
@@ -441,15 +441,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 : "Please select an active paper above to start chatting"
             }
             disabled={!selectedPaperId || loading}
-            className="w-full bg-transparent text-[#faf8f5] placeholder-[#757168] text-sm sm:text-base resize-none focus:outline-none px-2 py-1 max-h-[180px] disabled:opacity-50 leading-relaxed"
+            className="w-full bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] text-sm sm:text-base resize-none focus:outline-none px-2 py-1 max-h-[180px] disabled:opacity-50 leading-relaxed"
           />
 
           {/* Bottom Bar inside Prompt Card */}
           <div className="flex items-center justify-between pt-1">
             <div className="flex items-center gap-2">
               {currentPaper && (
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#242320] border border-[#33322e] text-xs text-[#a8a49c]">
-                  <Bookmark className="h-3.5 w-3.5 text-amber-400" />
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--bg-element)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)]">
+                  <Bookmark className="h-3.5 w-3.5 text-[var(--accent-text)]" />
                   <span className="truncate max-w-[200px] sm:max-w-[320px] font-medium">{currentPaper.title}</span>
                 </div>
               )}
@@ -460,13 +460,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               disabled={!selectedPaperId || !inputMessage.trim() || loading}
               className={`h-9 w-9 rounded-full flex items-center justify-center transition-all ${
                 inputMessage.trim() && !loading
-                  ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20 font-bold hover:scale-105'
-                  : 'bg-[#242320] text-[#6e6b63] cursor-not-allowed'
+                  ? 'bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white shadow-md font-bold hover:scale-105'
+                  : 'bg-[var(--bg-element)] text-[var(--text-muted)] cursor-not-allowed'
               }`}
               title="Send message"
             >
               {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
+                <Loader2 className="h-4 w-4 animate-spin text-[var(--text-muted)]" />
               ) : (
                 <ArrowUp className="h-4.5 w-4.5 stroke-[2.5]" />
               )}
@@ -475,7 +475,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
 
         {/* Disclaimer Footnote */}
-        <p className="text-center text-[11px] text-[#757168]">
+        <p className="text-center text-[11px] text-[var(--text-muted)]">
           ScholarGPT produces verified citations based on ChromaDB vector embeddings. Always verify critical facts from the original paper.
         </p>
       </div>
