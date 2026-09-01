@@ -244,43 +244,43 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Main Messages Scroll Container */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-6 bg-[#131312]">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 space-y-7 bg-[#131312]">
         
         {historyLoading ? (
-          <div className="flex flex-col items-center justify-center h-full text-stone-400 text-xs space-y-3">
-            <Loader2 className="h-5 w-5 text-amber-400 animate-spin" />
-            <span className="font-mono">Loading conversation context...</span>
+          <div className="flex flex-col items-center justify-center h-full text-stone-400 text-sm space-y-3">
+            <Loader2 className="h-6 w-6 text-amber-400 animate-spin" />
+            <span className="font-mono text-xs">Loading conversation context...</span>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-2xl mx-auto text-center space-y-8 py-6">
-            <div className="space-y-3">
-              <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mx-auto shadow-sm">
-                <Sparkles className="h-6 w-6" />
+          <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-3xl mx-auto text-center space-y-9 py-8">
+            <div className="space-y-3.5">
+              <div className="h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 mx-auto shadow-sm transition-transform hover:scale-105">
+                <Sparkles className="h-7 w-7" />
               </div>
-              <h2 className="text-xl sm:text-2xl font-semibold text-[#faf8f5] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#faf8f5] tracking-tight">
                 What would you like to explore today?
               </h2>
-              <p className="text-xs sm:text-sm text-[#8c887e] max-w-lg mx-auto leading-relaxed">
-                Ask multi-turn questions about your research paper. Powered by ChromaDB hybrid RAG and verified citations.
+              <p className="text-sm sm:text-[15px] text-[#9c988f] max-w-xl mx-auto leading-relaxed">
+                Ask deep technical questions about your research paper. Powered by ChromaDB hybrid RAG and verified citations.
               </p>
             </div>
 
-            {/* 4 Clean Research Starter Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left">
+            {/* 4 Clean Interactive Research Starter Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full text-left">
               {starterPrompts.map((item, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleSend(item.prompt)}
                   disabled={!selectedPaperId}
-                  className="bg-[#181816] hover:bg-[#201f1c] border border-[#282724] hover:border-[#3d3b36] p-4 rounded-xl text-left transition-all duration-200 group flex flex-col justify-between space-y-2 shadow-xs disabled:opacity-50"
+                  className="bg-[#181816] hover:bg-[#22211e] border border-[#2b2a26] hover:border-amber-500/40 p-5 rounded-2xl text-left transition-all duration-200 group flex flex-col justify-between space-y-2.5 shadow-xs hover:-translate-y-0.5 disabled:opacity-50"
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-xs font-semibold text-[#ede8e1] group-hover:text-amber-400 transition-colors">
+                    <span className="text-sm font-semibold text-[#faf8f5] group-hover:text-amber-400 transition-colors">
                       {item.title}
                     </span>
-                    <Sparkles className="h-3.5 w-3.5 text-[#6e6b63] group-hover:text-amber-400 transition-colors" />
+                    <Sparkles className="h-4 w-4 text-[#757168] group-hover:text-amber-400 transition-colors" />
                   </div>
-                  <p className="text-[11px] text-[#8c887e] leading-normal line-clamp-2">
+                  <p className="text-xs text-[#9c988f] leading-relaxed">
                     {item.desc}
                   </p>
                 </button>
@@ -291,14 +291,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`flex items-start gap-3.5 ${
+              className={`flex items-start gap-4 ${
                 msg.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
               {/* AI Avatar */}
               {msg.role === 'assistant' && (
-                <div className="h-8 w-8 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
-                  <Bot className="h-4 w-4" />
+                <div className="h-9 w-9 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-1 shadow-xs">
+                  <Bot className="h-5 w-5" />
                 </div>
               )}
 
@@ -306,42 +306,42 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <div
                 className={`group relative ${
                   msg.role === 'user'
-                    ? 'bg-[#292825] text-[#faf8f5] rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%] sm:max-w-[75%] shadow-xs'
-                    : 'bg-[#181816] border border-[#262522] text-[#ede8e1] rounded-2xl rounded-tl-sm px-5 py-4 max-w-[92%] sm:max-w-[85%] space-y-3 shadow-sm'
+                    ? 'bg-[#292825] text-[#ffffff] rounded-2xl rounded-tr-sm px-5 py-3.5 max-w-[85%] sm:max-w-[75%] shadow-xs font-medium text-sm sm:text-[15px] leading-relaxed'
+                    : 'bg-[#181816] border border-[#282724] text-[#faf8f5] rounded-2xl rounded-tl-sm px-6 py-5 max-w-[95%] sm:max-w-[88%] space-y-4 shadow-sm'
                 }`}
               >
-                {/* Message Text */}
-                <div className="text-xs sm:text-[13px] leading-relaxed whitespace-pre-wrap font-sans">
+                {/* Message Text with Larger Font & Great Line Height */}
+                <div className="text-[15px] sm:text-base leading-relaxed sm:leading-[1.75] whitespace-pre-wrap font-sans text-[#faf8f5] selection:bg-amber-500 selection:text-black">
                   {msg.message}
                 </div>
 
                 {/* Collapsible Verified Citations */}
                 {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
-                  <div className="pt-2.5 border-t border-[#2a2926]">
+                  <div className="pt-3 border-t border-[#2a2926]">
                     <button
                       onClick={() => toggleSources(idx)}
-                      className="text-[11px] text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1.5 focus:outline-none transition-colors"
+                      className="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1.5 focus:outline-none transition-colors"
                     >
-                      <FileText className="h-3 w-3" />
-                      <span>{msg.sources.length} Verified Citations</span>
+                      <FileText className="h-3.5 w-3.5" />
+                      <span>{msg.sources.length} Verified Page Citations</span>
                       {expandedSources[idx] ? (
-                        <ChevronUp className="h-3 w-3" />
+                        <ChevronUp className="h-3.5 w-3.5" />
                       ) : (
-                        <ChevronDown className="h-3 w-3" />
+                        <ChevronDown className="h-3.5 w-3.5" />
                       )}
                     </button>
 
                     {expandedSources[idx] && (
-                      <div className="mt-2.5 space-y-2 font-mono text-[11px]">
+                      <div className="mt-3 space-y-2.5 font-mono text-xs">
                         {msg.sources.map((src: RAGSourceSchema, sIdx: number) => (
-                          <div key={sIdx} className="bg-[#121211] border border-[#282724] rounded-lg p-3 space-y-1.5">
-                            <div className="flex items-center justify-between text-[#ede8e1] font-semibold text-[11px]">
-                              <span className="truncate max-w-[200px] text-stone-300">{src.paper_name}</span>
-                              <span className="text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded text-[10px] border border-amber-500/20">
+                          <div key={sIdx} className="bg-[#121211] border border-[#2b2a26] rounded-xl p-3.5 space-y-1.5">
+                            <div className="flex items-center justify-between text-[#faf8f5] font-semibold text-xs">
+                              <span className="truncate max-w-[260px] text-stone-200">{src.paper_name}</span>
+                              <span className="text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded text-[11px] border border-amber-500/25">
                                 Page {src.page_number}
                               </span>
                             </div>
-                            <p className="text-[#a8a49c] font-sans text-[11px] leading-normal italic">
+                            <p className="text-[#a8a49c] font-sans text-xs sm:text-[13px] leading-relaxed italic">
                               "{src.text_snippet}"
                             </p>
                           </div>
@@ -353,22 +353,22 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
                 {/* Action buttons (Copy) for Assistant */}
                 {msg.role === 'assistant' && (
-                  <div className="flex items-center justify-between pt-1 text-[#8c887e]">
-                    <span className="text-[10px] font-mono text-stone-500">RAG Synthesized</span>
+                  <div className="flex items-center justify-between pt-1.5 text-[#8c887e]">
+                    <span className="text-[11px] font-mono text-stone-500">ChromaDB RAG Grounded</span>
                     <button
                       onClick={() => handleCopyMessage(msg.message, idx)}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-[#ede8e1] hover:bg-[#242320] rounded transition-all text-xs flex items-center gap-1"
+                      className="opacity-80 group-hover:opacity-100 px-2 py-1 hover:text-[#ede8e1] hover:bg-[#242320] rounded-md transition-all text-xs flex items-center gap-1.5"
                       title="Copy message"
                     >
                       {copiedIndex === idx ? (
                         <>
-                          <Check className="h-3 w-3 text-amber-400" />
-                          <span className="text-[10px] text-amber-400">Copied</span>
+                          <Check className="h-3.5 w-3.5 text-amber-400" />
+                          <span className="text-xs text-amber-400 font-medium">Copied!</span>
                         </>
                       ) : (
                         <>
-                          <Copy className="h-3 w-3" />
-                          <span className="text-[10px]">Copy</span>
+                          <Copy className="h-3.5 w-3.5" />
+                          <span className="text-xs">Copy</span>
                         </>
                       )}
                     </button>
@@ -378,8 +378,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
               {/* User Avatar */}
               {msg.role === 'user' && (
-                <div className="h-8 w-8 rounded-full bg-[#292825] border border-[#383733] flex items-center justify-center text-stone-300 shrink-0 mt-0.5">
-                  <UserIcon className="h-4 w-4" />
+                <div className="h-9 w-9 rounded-full bg-[#292825] border border-[#383733] flex items-center justify-center text-stone-200 shrink-0 mt-1 shadow-xs">
+                  <UserIcon className="h-5 w-5" />
                 </div>
               )}
             </div>
@@ -388,11 +388,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
         {/* Loading Bubble */}
         {loading && (
-          <div className="flex items-start gap-3.5">
-            <div className="h-8 w-8 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
-              <Bot className="h-4 w-4 animate-pulse" />
+          <div className="flex items-start gap-4">
+            <div className="h-9 w-9 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-1">
+              <Bot className="h-5 w-5 animate-pulse" />
             </div>
-            <div className="bg-[#181816] border border-[#262522] rounded-2xl rounded-tl-sm px-4 py-3 text-xs text-[#a8a49c] flex items-center gap-2.5">
+            <div className="bg-[#181816] border border-[#282724] rounded-2xl rounded-tl-sm px-5 py-4 text-sm text-[#a8a49c] flex items-center gap-3 shadow-xs">
               <Loader2 className="h-4 w-4 text-amber-400 animate-spin" />
               <span>Retrieving embeddings from ChromaDB and synthesizing response...</span>
             </div>
@@ -403,10 +403,32 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Floating Prompt Input Bar */}
-      <div className="p-3 sm:p-4 bg-[#131312] border-t border-[#201f1c] rounded-b-2xl">
-        <div className="relative bg-[#181816] border border-[#2b2a26] focus-within:border-[#42403a] rounded-2xl p-2.5 transition-all shadow-md flex flex-col gap-2">
+      <div className="p-3 sm:p-5 bg-[#131312] border-t border-[#201f1c] rounded-b-2xl space-y-2">
+        
+        {/* Quick Suggest Chips for Delightful Interactivity */}
+        {selectedPaperId && !loading && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+            <span className="text-[11px] text-[#757168] font-mono shrink-0">Quick prompt:</span>
+            {[
+              { label: '⚡ Core Findings', query: 'What are the core findings, contributions, and key takeaways of this research paper?' },
+              { label: '🔬 Methodology', query: 'Explain the proposed methodology, pipeline architecture, and mathematical foundations in simple terms.' },
+              { label: '📊 Datasets & Results', query: 'Which datasets, benchmarks, and quantitative baseline comparisons were used in the experiments?' },
+              { label: '🎯 Limitations & Gaps', query: 'What are the main limitations, unaddressed assumptions, and future research gaps noted in this paper?' }
+            ].map((chip, cIdx) => (
+              <button
+                key={cIdx}
+                onClick={() => handleSend(chip.query)}
+                className="px-3 py-1 bg-[#181816] hover:bg-[#242320] border border-[#2b2a26] hover:border-amber-500/40 text-stone-300 hover:text-amber-300 rounded-full text-xs shrink-0 transition-all font-medium"
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="relative bg-[#181816] border border-[#2b2a26] focus-within:border-amber-500/50 rounded-2xl p-3 transition-all shadow-md flex flex-col gap-2.5">
           
-          {/* Textarea */}
+          {/* Textarea with Larger, Comfortable Typing Font */}
           <textarea
             ref={textareaRef}
             value={inputMessage}
@@ -419,16 +441,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 : "Please select an active paper above to start chatting"
             }
             disabled={!selectedPaperId || loading}
-            className="w-full bg-transparent text-[#ede8e1] placeholder-[#8c887e] text-xs sm:text-sm resize-none focus:outline-none px-2 py-1 max-h-[160px] disabled:opacity-50"
+            className="w-full bg-transparent text-[#faf8f5] placeholder-[#757168] text-sm sm:text-base resize-none focus:outline-none px-2 py-1 max-h-[180px] disabled:opacity-50 leading-relaxed"
           />
 
           {/* Bottom Bar inside Prompt Card */}
           <div className="flex items-center justify-between pt-1">
             <div className="flex items-center gap-2">
               {currentPaper && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#242320] border border-[#33322e] text-[11px] text-[#a8a49c]">
-                  <Bookmark className="h-3 w-3 text-amber-400" />
-                  <span className="truncate max-w-[180px] sm:max-w-[280px]">{currentPaper.title}</span>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#242320] border border-[#33322e] text-xs text-[#a8a49c]">
+                  <Bookmark className="h-3.5 w-3.5 text-amber-400" />
+                  <span className="truncate max-w-[200px] sm:max-w-[320px] font-medium">{currentPaper.title}</span>
                 </div>
               )}
             </div>
@@ -436,9 +458,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             <button
               onClick={() => handleSend()}
               disabled={!selectedPaperId || !inputMessage.trim() || loading}
-              className={`h-8 w-8 rounded-full flex items-center justify-center transition-all ${
+              className={`h-9 w-9 rounded-full flex items-center justify-center transition-all ${
                 inputMessage.trim() && !loading
-                  ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20 font-bold'
+                  ? 'bg-amber-500 hover:bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20 font-bold hover:scale-105'
                   : 'bg-[#242320] text-[#6e6b63] cursor-not-allowed'
               }`}
               title="Send message"
@@ -446,14 +468,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-stone-400" />
               ) : (
-                <ArrowUp className="h-4 w-4 stroke-[2.5]" />
+                <ArrowUp className="h-4.5 w-4.5 stroke-[2.5]" />
               )}
             </button>
           </div>
         </div>
 
-        {/* Disclaimer Footer */}
-        <p className="text-center text-[10px] text-[#6e6b63] mt-2">
+        {/* Disclaimer Footnote */}
+        <p className="text-center text-[11px] text-[#757168]">
           ScholarGPT produces verified citations based on ChromaDB vector embeddings. Always verify critical facts from the original paper.
         </p>
       </div>

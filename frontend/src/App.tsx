@@ -247,14 +247,14 @@ export default function App() {
         <div className="flex flex-col h-full overflow-hidden">
           
           {/* Top Brand Header */}
-          <div className="p-3.5 border-b border-[#282724] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                <BookOpen className="h-4 w-4" />
+          <div className="p-4 border-b border-[#282724] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
+                <BookOpen className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="font-semibold text-xs text-[#faf8f5] tracking-tight">ScholarGPT</h1>
-                <p className="text-[10px] text-[#8c887e] font-mono">Academic Workspace</p>
+                <h1 className="font-bold text-sm text-[#faf8f5] tracking-tight">ScholarGPT</h1>
+                <p className="text-[11px] text-[#8c887e] font-mono">Academic Workspace</p>
               </div>
             </div>
 
@@ -268,27 +268,27 @@ export default function App() {
           </div>
 
           {/* New Chat Action Button */}
-          <div className="p-3">
+          <div className="p-3.5">
             <button
               onClick={startNewChat}
-              className="w-full py-2 px-3 bg-[#1c1b18] hover:bg-[#242320] border border-[#302e2a] hover:border-[#42403a] text-[#ede8e1] rounded-xl text-xs font-semibold flex items-center justify-between transition-all duration-200 shadow-xs group"
+              className="w-full py-2.5 px-3.5 bg-[#1c1b18] hover:bg-[#242320] border border-[#302e2a] hover:border-amber-500/40 text-[#faf8f5] rounded-xl text-sm font-semibold flex items-center justify-between transition-all duration-200 shadow-xs group"
             >
-              <div className="flex items-center gap-2">
-                <div className="h-5 w-5 rounded-md bg-amber-500/15 flex items-center justify-center text-amber-400">
-                  <Plus className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-2.5">
+                <div className="h-6 w-6 rounded-lg bg-amber-500/15 flex items-center justify-center text-amber-400">
+                  <Plus className="h-4 w-4" />
                 </div>
                 <span>New Research Chat</span>
               </div>
-              <Sparkles className="h-3 w-3 text-[#8c887e] group-hover:text-amber-400 transition-colors" />
+              <Sparkles className="h-3.5 w-3.5 text-[#8c887e] group-hover:text-amber-400 transition-colors" />
             </button>
           </div>
 
           {/* Scrollable Navigation & Papers Section */}
-          <div className="flex-1 overflow-y-auto px-3 space-y-5 pb-4">
+          <div className="flex-1 overflow-y-auto px-3.5 space-y-6 pb-4">
             
             {/* Section 1: Studio Modes (Clean 6 options) */}
-            <div className="space-y-1">
-              <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-[#8c887e] font-semibold">
+            <div className="space-y-1.5">
+              <div className="px-2 py-1 text-[11px] font-mono uppercase tracking-wider text-[#8c887e] font-bold">
                 Research Workspace
               </div>
 
@@ -299,18 +299,18 @@ export default function App() {
                   <button
                     key={mode.id}
                     onClick={() => setActiveTab(mode.id)}
-                    className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${
                       isActive
                         ? 'bg-[#242320] text-amber-400 font-semibold shadow-xs'
-                        : 'text-[#a8a49c] hover:text-[#ede8e1] hover:bg-[#1c1b18]'
+                        : 'text-[#a8a49c] hover:text-[#faf8f5] hover:bg-[#1c1b18]'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 truncate">
+                    <div className="flex items-center gap-3 truncate">
                       <IconComponent className={`h-4 w-4 shrink-0 ${isActive ? 'text-amber-400' : 'text-[#8c887e]'}`} />
                       <span className="truncate">{mode.label}</span>
                     </div>
                     {mode.badge && (
-                      <span className="text-[10px] bg-[#292825] text-[#a8a49c] px-1.5 py-0.5 rounded font-mono">
+                      <span className="text-[11px] bg-[#292825] text-[#a8a49c] px-2 py-0.5 rounded-md font-mono">
                         {mode.badge}
                       </span>
                     )}
@@ -320,9 +320,9 @@ export default function App() {
             </div>
 
             {/* Section 2: Uploaded Paper Contexts */}
-            <div className="space-y-2 pt-2 border-t border-[#282724]">
+            <div className="space-y-2.5 pt-3 border-t border-[#282724]">
               <div className="flex items-center justify-between px-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#8c887e] font-semibold">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-[#8c887e] font-bold">
                   Paper Library ({papers.length})
                 </span>
                 <button
@@ -330,7 +330,7 @@ export default function App() {
                     setActiveTab('library');
                     setShowLibraryUpload(true);
                   }}
-                  className="text-[10px] text-amber-400 hover:text-amber-300 font-medium"
+                  className="text-xs text-amber-400 hover:text-amber-300 font-semibold"
                 >
                   + Upload
                 </button>
@@ -338,22 +338,22 @@ export default function App() {
 
               {papers.length > 0 && (
                 <div className="relative px-1">
-                  <Search className="h-3 w-3 text-[#8c887e] absolute left-3 top-2" />
+                  <Search className="h-3.5 w-3.5 text-[#8c887e] absolute left-3.5 top-2.5" />
                   <input
                     type="text"
                     placeholder="Filter papers..."
                     value={sidebarPaperSearch}
                     onChange={(e) => setSidebarPaperSearch(e.target.value)}
-                    className="w-full bg-[#1c1b18] border border-[#2e2d29] rounded-lg pl-7 pr-2 py-1 text-[11px] text-[#ede8e1] placeholder-[#8c887e] focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[#1c1b18] border border-[#2e2d29] rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-[#ede8e1] placeholder-[#8c887e] focus:outline-none focus:border-amber-500"
                   />
                 </div>
               )}
 
-              <div className="space-y-0.5 max-h-56 overflow-y-auto">
+              <div className="space-y-1 max-h-60 overflow-y-auto">
                 {papers.length === 0 ? (
-                  <p className="text-[11px] text-[#8c887e] px-2 py-1">No papers uploaded yet.</p>
+                  <p className="text-xs text-[#8c887e] px-2 py-1.5">No papers uploaded yet.</p>
                 ) : sidebarFilteredPapers.length === 0 ? (
-                  <p className="text-[11px] text-[#8c887e] px-2 py-1">No matching papers.</p>
+                  <p className="text-xs text-[#8c887e] px-2 py-1.5">No matching papers.</p>
                 ) : (
                   sidebarFilteredPapers.map((paper) => {
                     const isSelected = selectedPaper?.id === paper.id;
@@ -361,17 +361,17 @@ export default function App() {
                       <div
                         key={paper.id}
                         onClick={() => selectPaperAndChat(paper)}
-                        className={`w-full group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                        className={`w-full group flex items-center justify-between px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors ${
                           isSelected
                             ? 'bg-[#242320] text-white border border-[#363430]'
                             : 'text-[#a8a49c] hover:text-[#ede8e1] hover:bg-[#1c1b18]'
                         }`}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className={`h-2 w-2 rounded-full shrink-0 ${
                             paper.status === 'indexed' ? 'bg-amber-400' : 'bg-stone-500'
                           }`} />
-                          <span className="truncate text-[11px] font-medium">{paper.title}</span>
+                          <span className="truncate text-xs font-medium">{paper.title}</span>
                         </div>
 
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -383,7 +383,7 @@ export default function App() {
                             className="p-1 hover:text-amber-400"
                             title="View PDF"
                           >
-                            <Eye className="h-3 w-3" />
+                            <Eye className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
@@ -396,13 +396,13 @@ export default function App() {
           </div>
 
           {/* Bottom Workspace / User Profile Bar */}
-          <div className="p-3 border-t border-[#282724] bg-[#161614] space-y-2">
+          <div className="p-3.5 border-t border-[#282724] bg-[#161614] space-y-2.5">
             
             {/* Vector Stats & RAG Telemetry trigger */}
             <div className="flex items-center justify-between text-xs">
               <button
                 onClick={() => setShowTelemetryModal(true)}
-                className="flex items-center gap-1.5 text-[11px] font-mono text-[#a8a49c] hover:text-amber-400 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-mono text-[#a8a49c] hover:text-amber-400 transition-colors"
                 title="Open RAG Telemetry & Inspect Embeddings"
               >
                 <Activity className="h-3.5 w-3.5 text-amber-400" />
@@ -411,27 +411,27 @@ export default function App() {
 
               <button
                 onClick={() => setShowArchitectureModal(true)}
-                className="text-[11px] text-[#8c887e] hover:text-amber-300 flex items-center gap-1 transition-colors font-mono"
+                className="text-xs text-[#8c887e] hover:text-amber-300 flex items-center gap-1 transition-colors font-mono"
                 title="System Architecture Diagram"
               >
-                <Workflow className="h-3 w-3" />
+                <Workflow className="h-3.5 w-3.5" />
                 <span>System</span>
               </button>
 
               <button
                 onClick={() => openExportModal('Academic_Dossier', '# Academic Research Report\n\nGenerated by AI Research Assistant.')}
-                className="text-[11px] text-[#a8a49c] hover:text-amber-300 flex items-center gap-1 transition-colors"
+                className="text-xs text-[#a8a49c] hover:text-amber-300 flex items-center gap-1 transition-colors font-medium"
                 title="Export LaTeX / BibTeX / Dossier"
               >
-                <Download className="h-3 w-3" />
+                <Download className="h-3.5 w-3.5" />
                 <span>Export</span>
               </button>
             </div>
 
             {/* Connection Status & Settings */}
-            <div className="flex items-center justify-between pt-1 border-t border-[#242320]">
+            <div className="flex items-center justify-between pt-1.5 border-t border-[#242320]">
               <div 
-                className="flex items-center gap-1.5 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer"
                 onClick={() => setShowApiModal(true)}
                 title={error ? `Error: ${error} (Click to configure API)` : `Backend Status: ${connectionState}`}
               >
@@ -442,27 +442,27 @@ export default function App() {
                     ? 'bg-amber-400 animate-pulse'
                     : 'bg-rose-400'
                 }`} />
-                <span className="text-[11px] text-[#8c887e] capitalize">
+                <span className="text-xs text-[#8c887e] capitalize">
                   {connectionState === 'waking' ? `Waking (${retryAttempt}/5)` : connectionState}
                 </span>
               </div>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => { fetchHealth(); fetchPapers(); }}
                   disabled={loading}
-                  className="p-1 text-[#8c887e] hover:text-[#ede8e1] rounded transition-colors"
+                  className="p-1.5 text-[#8c887e] hover:text-[#ede8e1] rounded-lg hover:bg-[#242320] transition-colors"
                   title="Refresh Connection"
                 >
-                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-amber-400' : ''}`} />
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-amber-400' : ''}`} />
                 </button>
 
                 <button
                   onClick={() => setShowApiModal(true)}
-                  className="p-1 text-[#8c887e] hover:text-[#ede8e1] rounded transition-colors"
+                  className="p-1.5 text-[#8c887e] hover:text-[#ede8e1] rounded-lg hover:bg-[#242320] transition-colors"
                   title="Configure API Endpoint"
                 >
-                  <Settings className="h-3.5 w-3.5" />
+                  <Settings className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -476,36 +476,36 @@ export default function App() {
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-[#131312]">
         
         {/* Top Floating App Bar */}
-        <header className="h-12 border-b border-[#282724] bg-[#181816]/90 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-20">
+        <header className="h-14 border-b border-[#282724] bg-[#181816]/90 backdrop-blur-md px-5 flex items-center justify-between shrink-0 z-20">
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
             {/* Sidebar toggle button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1.5 text-stone-400 hover:text-stone-100 hover:bg-[#242320] rounded-lg transition-colors"
+              className="p-2 text-stone-400 hover:text-stone-100 hover:bg-[#242320] rounded-lg transition-colors"
               title={sidebarOpen ? "Hide sidebar" : "Open sidebar"}
             >
-              {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+              {sidebarOpen ? <PanelLeftClose className="h-4.5 w-4.5" /> : <PanelLeft className="h-4.5 w-4.5" />}
             </button>
 
             {/* Active Studio Mode Title */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#faf8f5]">{currentModeObj.label}</span>
+              <span className="text-sm font-bold text-[#faf8f5]">{currentModeObj.label}</span>
             </div>
           </div>
 
           {/* Right Header Controls */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             
             {/* Active Paper Quick Pill */}
             {selectedPaper && (
               <div 
                 onClick={() => setSelectedPaper(selectedPaper)}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1c1b18] border border-[#2e2d29] hover:border-[#42403a] text-xs text-[#a8a49c] cursor-pointer transition-colors max-w-[220px]"
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#1c1b18] border border-[#2e2d29] hover:border-amber-500/40 text-xs text-[#a8a49c] cursor-pointer transition-colors max-w-[260px]"
                 title="Active context paper"
               >
-                <FileText className="h-3 w-3 text-amber-400 shrink-0" />
-                <span className="truncate text-[11px] font-medium text-[#ede8e1]">{selectedPaper.title}</span>
+                <FileText className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                <span className="truncate text-xs font-medium text-[#faf8f5]">{selectedPaper.title}</span>
               </div>
             )}
 
@@ -513,7 +513,7 @@ export default function App() {
             {selectedPaper && (
               <button
                 onClick={() => setPdfPaperObj(selectedPaper)}
-                className="hidden md:flex items-center gap-1 px-2.5 py-1 bg-[#1c1b18] hover:bg-[#242320] border border-[#2e2d29] text-stone-300 text-xs rounded-lg transition-colors"
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1b18] hover:bg-[#242320] border border-[#2e2d29] text-stone-300 text-xs font-medium rounded-lg transition-colors"
                 title="Read PDF"
               >
                 <Eye className="h-3.5 w-3.5 text-amber-400" />
@@ -524,7 +524,7 @@ export default function App() {
             {/* Quick Export Dossier Button */}
             <button
               onClick={() => openExportModal('Academic_Dossier', '# Academic Research Report\n\nGenerated by AI Research Assistant.')}
-              className="flex items-center gap-1 px-2.5 py-1 bg-[#1c1b18] hover:bg-[#242320] border border-[#2e2d29] text-stone-300 text-xs rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1b18] hover:bg-[#242320] border border-[#2e2d29] text-stone-200 text-xs font-medium rounded-lg transition-colors"
               title="Export Research Artifacts"
             >
               <Download className="h-3.5 w-3.5 text-amber-400" />
