@@ -236,31 +236,31 @@ export default function App() {
   const currentModeObj = studioModes.find((m) => m.id === activeTab) || studioModes[0];
 
   return (
-    <div className="min-h-screen bg-[#0e0e11] text-[#ececf1] flex flex-row overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#131312] text-[#ede8e1] flex flex-row overflow-hidden font-sans">
       
-      {/* ChatGPT Sleek Left Sidebar */}
+      {/* Claude-Style Warm Left Sidebar */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-40 bg-[#121215] border-r border-[#232327] flex flex-col justify-between transition-all duration-300 ease-in-out md:static ${
+        className={`fixed inset-y-0 left-0 z-40 bg-[#181816] border-r border-[#282724] flex flex-col justify-between transition-all duration-300 ease-in-out md:static ${
           sidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full md:w-0 md:translate-x-0 overflow-hidden'
         }`}
       >
         <div className="flex flex-col h-full overflow-hidden">
           
           {/* Top Brand Header */}
-          <div className="p-3.5 border-b border-[#232327] flex items-center justify-between">
+          <div className="p-3.5 border-b border-[#282724] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <div className="h-8 w-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
                 <BookOpen className="h-4 w-4" />
               </div>
               <div>
-                <h1 className="font-semibold text-xs text-[#f4f4f5] tracking-tight">ScholarGPT</h1>
-                <p className="text-[10px] text-[#71717a] font-mono">Academic Workspace</p>
+                <h1 className="font-semibold text-xs text-[#faf8f5] tracking-tight">ScholarGPT</h1>
+                <p className="text-[10px] text-[#8c887e] font-mono">Academic Workspace</p>
               </div>
             </div>
 
             <button
               onClick={() => setSidebarOpen(false)}
-              className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-[#222226] rounded-lg transition-colors md:hidden"
+              className="p-1.5 text-stone-400 hover:text-stone-200 hover:bg-[#242320] rounded-lg transition-colors md:hidden"
               title="Close sidebar"
             >
               <PanelLeftClose className="h-4 w-4" />
@@ -271,15 +271,15 @@ export default function App() {
           <div className="p-3">
             <button
               onClick={startNewChat}
-              className="w-full py-2 px-3 bg-[#18181b] hover:bg-[#222226] border border-[#2e2e33] hover:border-[#3f3f46] text-[#ececf1] rounded-xl text-xs font-semibold flex items-center justify-between transition-all duration-200 shadow-sm group"
+              className="w-full py-2 px-3 bg-[#1c1b18] hover:bg-[#242320] border border-[#302e2a] hover:border-[#42403a] text-[#ede8e1] rounded-xl text-xs font-semibold flex items-center justify-between transition-all duration-200 shadow-xs group"
             >
               <div className="flex items-center gap-2">
-                <div className="h-5 w-5 rounded-md bg-emerald-500/15 flex items-center justify-center text-emerald-400">
+                <div className="h-5 w-5 rounded-md bg-amber-500/15 flex items-center justify-center text-amber-400">
                   <Plus className="h-3.5 w-3.5" />
                 </div>
                 <span>New Research Chat</span>
               </div>
-              <Sparkles className="h-3 w-3 text-[#71717a] group-hover:text-emerald-400 transition-colors" />
+              <Sparkles className="h-3 w-3 text-[#8c887e] group-hover:text-amber-400 transition-colors" />
             </button>
           </div>
 
@@ -288,7 +288,7 @@ export default function App() {
             
             {/* Section 1: Studio Modes (Clean 6 options) */}
             <div className="space-y-1">
-              <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-[#71717a] font-semibold">
+              <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-[#8c887e] font-semibold">
                 Research Workspace
               </div>
 
@@ -301,16 +301,16 @@ export default function App() {
                     onClick={() => setActiveTab(mode.id)}
                     className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${
                       isActive
-                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
-                        : 'text-[#a1a1aa] hover:text-[#ececf1] hover:bg-[#18181b]'
+                        ? 'bg-[#242320] text-amber-400 font-semibold shadow-xs'
+                        : 'text-[#a8a49c] hover:text-[#ede8e1] hover:bg-[#1c1b18]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 truncate">
-                      <IconComponent className={`h-4 w-4 shrink-0 ${isActive ? 'text-emerald-400' : 'text-[#71717a]'}`} />
+                      <IconComponent className={`h-4 w-4 shrink-0 ${isActive ? 'text-amber-400' : 'text-[#8c887e]'}`} />
                       <span className="truncate">{mode.label}</span>
                     </div>
                     {mode.badge && (
-                      <span className="text-[10px] bg-[#27272a] text-[#a1a1aa] px-1.5 py-0.5 rounded font-mono">
+                      <span className="text-[10px] bg-[#292825] text-[#a8a49c] px-1.5 py-0.5 rounded font-mono">
                         {mode.badge}
                       </span>
                     )}
@@ -320,9 +320,9 @@ export default function App() {
             </div>
 
             {/* Section 2: Uploaded Paper Contexts */}
-            <div className="space-y-2 pt-2 border-t border-[#232327]">
+            <div className="space-y-2 pt-2 border-t border-[#282724]">
               <div className="flex items-center justify-between px-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#71717a] font-semibold">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#8c887e] font-semibold">
                   Paper Library ({papers.length})
                 </span>
                 <button
@@ -330,7 +330,7 @@ export default function App() {
                     setActiveTab('library');
                     setShowLibraryUpload(true);
                   }}
-                  className="text-[10px] text-emerald-400 hover:text-emerald-300 font-medium"
+                  className="text-[10px] text-amber-400 hover:text-amber-300 font-medium"
                 >
                   + Upload
                 </button>
@@ -338,22 +338,22 @@ export default function App() {
 
               {papers.length > 0 && (
                 <div className="relative px-1">
-                  <Search className="h-3 w-3 text-[#71717a] absolute left-3 top-2" />
+                  <Search className="h-3 w-3 text-[#8c887e] absolute left-3 top-2" />
                   <input
                     type="text"
                     placeholder="Filter papers..."
                     value={sidebarPaperSearch}
                     onChange={(e) => setSidebarPaperSearch(e.target.value)}
-                    className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-7 pr-2 py-1 text-[11px] text-[#ececf1] placeholder-[#71717a] focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-[#1c1b18] border border-[#2e2d29] rounded-lg pl-7 pr-2 py-1 text-[11px] text-[#ede8e1] placeholder-[#8c887e] focus:outline-none focus:border-amber-500"
                   />
                 </div>
               )}
 
               <div className="space-y-0.5 max-h-56 overflow-y-auto">
                 {papers.length === 0 ? (
-                  <p className="text-[11px] text-[#71717a] px-2 py-1">No papers uploaded yet.</p>
+                  <p className="text-[11px] text-[#8c887e] px-2 py-1">No papers uploaded yet.</p>
                 ) : sidebarFilteredPapers.length === 0 ? (
-                  <p className="text-[11px] text-[#71717a] px-2 py-1">No matching papers.</p>
+                  <p className="text-[11px] text-[#8c887e] px-2 py-1">No matching papers.</p>
                 ) : (
                   sidebarFilteredPapers.map((paper) => {
                     const isSelected = selectedPaper?.id === paper.id;
@@ -363,13 +363,13 @@ export default function App() {
                         onClick={() => selectPaperAndChat(paper)}
                         className={`w-full group flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
                           isSelected
-                            ? 'bg-[#1e1e24] text-white border border-[#2e2e33]'
-                            : 'text-[#a1a1aa] hover:text-[#ececf1] hover:bg-[#18181b]'
+                            ? 'bg-[#242320] text-white border border-[#363430]'
+                            : 'text-[#a8a49c] hover:text-[#ede8e1] hover:bg-[#1c1b18]'
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${
-                            paper.status === 'indexed' ? 'bg-emerald-400' : 'bg-zinc-500'
+                            paper.status === 'indexed' ? 'bg-amber-400' : 'bg-stone-500'
                           }`} />
                           <span className="truncate text-[11px] font-medium">{paper.title}</span>
                         </div>
@@ -380,7 +380,7 @@ export default function App() {
                               e.stopPropagation();
                               setPdfPaperObj(paper);
                             }}
-                            className="p-1 hover:text-emerald-400"
+                            className="p-1 hover:text-amber-400"
                             title="View PDF"
                           >
                             <Eye className="h-3 w-3" />
@@ -396,22 +396,22 @@ export default function App() {
           </div>
 
           {/* Bottom Workspace / User Profile Bar */}
-          <div className="p-3 border-t border-[#232327] bg-[#101013] space-y-2">
+          <div className="p-3 border-t border-[#282724] bg-[#161614] space-y-2">
             
             {/* Vector Stats & RAG Telemetry trigger */}
             <div className="flex items-center justify-between text-xs">
               <button
                 onClick={() => setShowTelemetryModal(true)}
-                className="flex items-center gap-1.5 text-[11px] font-mono text-[#a1a1aa] hover:text-emerald-400 transition-colors"
+                className="flex items-center gap-1.5 text-[11px] font-mono text-[#a8a49c] hover:text-amber-400 transition-colors"
                 title="Open RAG Telemetry & Inspect Embeddings"
               >
-                <Activity className="h-3.5 w-3.5 text-emerald-400" />
+                <Activity className="h-3.5 w-3.5 text-amber-400" />
                 <span>ChromaDB: <strong>{vectorStats?.total_vectors || 0}</strong> v</span>
               </button>
 
               <button
                 onClick={() => setShowArchitectureModal(true)}
-                className="text-[11px] text-[#71717a] hover:text-cyan-400 flex items-center gap-1 transition-colors font-mono"
+                className="text-[11px] text-[#8c887e] hover:text-amber-300 flex items-center gap-1 transition-colors font-mono"
                 title="System Architecture Diagram"
               >
                 <Workflow className="h-3 w-3" />
@@ -420,7 +420,7 @@ export default function App() {
 
               <button
                 onClick={() => openExportModal('Academic_Dossier', '# Academic Research Report\n\nGenerated by AI Research Assistant.')}
-                className="text-[11px] text-[#a1a1aa] hover:text-purple-300 flex items-center gap-1 transition-colors"
+                className="text-[11px] text-[#a8a49c] hover:text-amber-300 flex items-center gap-1 transition-colors"
                 title="Export LaTeX / BibTeX / Dossier"
               >
                 <Download className="h-3 w-3" />
@@ -429,7 +429,7 @@ export default function App() {
             </div>
 
             {/* Connection Status & Settings */}
-            <div className="flex items-center justify-between pt-1 border-t border-[#1f1f23]">
+            <div className="flex items-center justify-between pt-1 border-t border-[#242320]">
               <div 
                 className="flex items-center gap-1.5 cursor-pointer"
                 onClick={() => setShowApiModal(true)}
@@ -437,12 +437,12 @@ export default function App() {
               >
                 <span className={`h-2 w-2 rounded-full ${
                   connectionState === 'online'
-                    ? 'bg-emerald-400'
+                    ? 'bg-amber-400'
                     : connectionState === 'waking'
                     ? 'bg-amber-400 animate-pulse'
                     : 'bg-rose-400'
                 }`} />
-                <span className="text-[11px] text-[#71717a] capitalize">
+                <span className="text-[11px] text-[#8c887e] capitalize">
                   {connectionState === 'waking' ? `Waking (${retryAttempt}/5)` : connectionState}
                 </span>
               </div>
@@ -451,15 +451,15 @@ export default function App() {
                 <button
                   onClick={() => { fetchHealth(); fetchPapers(); }}
                   disabled={loading}
-                  className="p-1 text-[#71717a] hover:text-[#ececf1] rounded transition-colors"
+                  className="p-1 text-[#8c887e] hover:text-[#ede8e1] rounded transition-colors"
                   title="Refresh Connection"
                 >
-                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
+                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-amber-400' : ''}`} />
                 </button>
 
                 <button
                   onClick={() => setShowApiModal(true)}
-                  className="p-1 text-[#71717a] hover:text-[#ececf1] rounded transition-colors"
+                  className="p-1 text-[#8c887e] hover:text-[#ede8e1] rounded transition-colors"
                   title="Configure API Endpoint"
                 >
                   <Settings className="h-3.5 w-3.5" />
@@ -473,16 +473,16 @@ export default function App() {
       </aside>
 
       {/* Main Canvas Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-[#0e0e11]">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-[#131312]">
         
         {/* Top Floating App Bar */}
-        <header className="h-12 border-b border-[#232327] bg-[#121215]/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-20">
+        <header className="h-12 border-b border-[#282724] bg-[#181816]/90 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-20">
           
           <div className="flex items-center gap-3">
             {/* Sidebar toggle button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1.5 text-zinc-400 hover:text-zinc-100 hover:bg-[#222226] rounded-lg transition-colors"
+              className="p-1.5 text-stone-400 hover:text-stone-100 hover:bg-[#242320] rounded-lg transition-colors"
               title={sidebarOpen ? "Hide sidebar" : "Open sidebar"}
             >
               {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
@@ -490,7 +490,7 @@ export default function App() {
 
             {/* Active Studio Mode Title */}
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#f4f4f5]">{currentModeObj.label}</span>
+              <span className="text-xs font-semibold text-[#faf8f5]">{currentModeObj.label}</span>
             </div>
           </div>
 
@@ -501,11 +501,11 @@ export default function App() {
             {selectedPaper && (
               <div 
                 onClick={() => setSelectedPaper(selectedPaper)}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#18181b] border border-[#27272a] hover:border-[#38383e] text-xs text-[#a1a1aa] cursor-pointer transition-colors max-w-[220px]"
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1c1b18] border border-[#2e2d29] hover:border-[#42403a] text-xs text-[#a8a49c] cursor-pointer transition-colors max-w-[220px]"
                 title="Active context paper"
               >
-                <FileText className="h-3 w-3 text-emerald-400 shrink-0" />
-                <span className="truncate text-[11px] font-medium text-[#ececf1]">{selectedPaper.title}</span>
+                <FileText className="h-3 w-3 text-amber-400 shrink-0" />
+                <span className="truncate text-[11px] font-medium text-[#ede8e1]">{selectedPaper.title}</span>
               </div>
             )}
 
@@ -513,10 +513,10 @@ export default function App() {
             {selectedPaper && (
               <button
                 onClick={() => setPdfPaperObj(selectedPaper)}
-                className="hidden md:flex items-center gap-1 px-2.5 py-1 bg-[#18181b] hover:bg-[#222226] border border-[#27272a] text-zinc-300 text-xs rounded-lg transition-colors"
+                className="hidden md:flex items-center gap-1 px-2.5 py-1 bg-[#1c1b18] hover:bg-[#242320] border border-[#2e2d29] text-stone-300 text-xs rounded-lg transition-colors"
                 title="Read PDF"
               >
-                <Eye className="h-3.5 w-3.5 text-emerald-400" />
+                <Eye className="h-3.5 w-3.5 text-amber-400" />
                 <span>PDF</span>
               </button>
             )}
@@ -524,10 +524,10 @@ export default function App() {
             {/* Quick Export Dossier Button */}
             <button
               onClick={() => openExportModal('Academic_Dossier', '# Academic Research Report\n\nGenerated by AI Research Assistant.')}
-              className="flex items-center gap-1 px-2.5 py-1 bg-[#18181b] hover:bg-[#222226] border border-[#27272a] text-zinc-300 text-xs rounded-lg transition-colors"
+              className="flex items-center gap-1 px-2.5 py-1 bg-[#1c1b18] hover:bg-[#242320] border border-[#2e2d29] text-stone-300 text-xs rounded-lg transition-colors"
               title="Export Research Artifacts"
             >
-              <Download className="h-3.5 w-3.5 text-purple-400" />
+              <Download className="h-3.5 w-3.5 text-amber-400" />
               <span className="hidden sm:inline">Export</span>
             </button>
           </div>
@@ -560,7 +560,7 @@ export default function App() {
                   <FileUpload onUploadSuccess={handleUploadSuccess} />
                   <button
                     onClick={() => setShowLibraryUpload(false)}
-                    className="absolute top-4 right-4 text-xs text-zinc-400 hover:text-white px-2 py-1 bg-[#222226] rounded-md"
+                    className="absolute top-4 right-4 text-xs text-stone-400 hover:text-white px-2 py-1 bg-[#242320] rounded-md"
                   >
                     Hide Upload
                   </button>
@@ -569,44 +569,44 @@ export default function App() {
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-base font-bold text-[#f4f4f5] flex items-center gap-2">
-                    <Library className="h-5 w-5 text-emerald-400" /> Academic Paper Library
+                  <h2 className="text-base font-bold text-[#faf8f5] flex items-center gap-2">
+                    <Library className="h-5 w-5 text-amber-400" /> Academic Paper Library
                   </h2>
-                  <p className="text-xs text-[#71717a] mt-0.5">
+                  <p className="text-xs text-[#8c887e] mt-0.5">
                     {filteredPapers.length} of {papers.length} documents ({totalPages} pages) indexed in vector database
                   </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                   <div className="relative flex-1 sm:w-60">
-                    <Search className="h-3.5 w-3.5 text-[#71717a] absolute left-3 top-2.5" />
+                    <Search className="h-3.5 w-3.5 text-[#8c887e] absolute left-3 top-2.5" />
                     <input
                       type="text"
                       placeholder="Search papers..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-[#18181b] border border-[#27272a] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#ececf1] placeholder-[#71717a] focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-[#1c1b18] border border-[#2e2d29] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#ede8e1] placeholder-[#8c887e] focus:outline-none focus:border-amber-500"
                     />
                   </div>
 
-                  <div className="flex items-center gap-1 bg-[#18181b] border border-[#27272a] rounded-lg px-2 py-1 text-xs">
-                    <Filter className="h-3 w-3 text-[#71717a]" />
+                  <div className="flex items-center gap-1 bg-[#1c1b18] border border-[#2e2d29] rounded-lg px-2 py-1 text-xs">
+                    <Filter className="h-3 w-3 text-[#8c887e]" />
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="bg-transparent text-[#a1a1aa] font-medium focus:outline-none cursor-pointer text-xs"
+                      className="bg-transparent text-[#a8a49c] font-medium focus:outline-none cursor-pointer text-xs"
                     >
-                      <option value="all" className="bg-[#18181b]">All</option>
-                      <option value="uploaded" className="bg-[#18181b]">Uploaded</option>
-                      <option value="chunked" className="bg-[#18181b]">Chunked</option>
-                      <option value="embedded" className="bg-[#18181b]">Embedded</option>
-                      <option value="indexed" className="bg-[#18181b]">Indexed</option>
+                      <option value="all" className="bg-[#1c1b18]">All</option>
+                      <option value="uploaded" className="bg-[#1c1b18]">Uploaded</option>
+                      <option value="chunked" className="bg-[#1c1b18]">Chunked</option>
+                      <option value="embedded" className="bg-[#1c1b18]">Embedded</option>
+                      <option value="indexed" className="bg-[#1c1b18]">Indexed</option>
                     </select>
                   </div>
 
                   <button
                     onClick={() => setShowLibraryUpload(!showLibraryUpload)}
-                    className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all shadow-xs shrink-0"
                   >
                     <Plus className="h-3.5 w-3.5 stroke-[2.5]" /> {showLibraryUpload ? 'Close Upload' : 'Upload PDF'}
                   </button>
@@ -614,19 +614,19 @@ export default function App() {
               </div>
 
               {papersLoading ? (
-                <div className="text-center py-16 text-zinc-500 text-xs">Loading papers...</div>
+                <div className="text-center py-16 text-stone-500 text-xs">Loading papers...</div>
               ) : filteredPapers.length === 0 ? (
-                <div className="bg-[#141417] border border-[#232327] rounded-2xl p-10 text-center space-y-3 max-w-md mx-auto">
-                  <div className="h-10 w-10 rounded-xl bg-[#222226] border border-[#2c2c31] flex items-center justify-center text-emerald-400 mx-auto">
+                <div className="bg-[#181816] border border-[#282724] rounded-2xl p-10 text-center space-y-3 max-w-md mx-auto">
+                  <div className="h-10 w-10 rounded-xl bg-[#242320] border border-[#33322e] flex items-center justify-center text-amber-400 mx-auto">
                     <FileText className="h-5 w-5" />
                   </div>
-                  <h4 className="text-sm font-semibold text-[#ececf1]">No Papers Found</h4>
-                  <p className="text-xs text-[#71717a]">
+                  <h4 className="text-sm font-semibold text-[#faf8f5]">No Papers Found</h4>
+                  <p className="text-xs text-[#8c887e]">
                     Upload a paper to extract text, generate embeddings, and start chatting.
                   </p>
                   <button
                     onClick={() => setShowLibraryUpload(true)}
-                    className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-lg shadow-sm"
+                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-semibold rounded-lg shadow-xs"
                   >
                     + Upload First PDF
                   </button>
@@ -657,13 +657,13 @@ export default function App() {
           {activeTab === 'compare_review' && (
             <div className="space-y-5 max-w-6xl mx-auto">
               <div className="flex items-center justify-center sm:justify-start">
-                <div className="inline-flex p-1 bg-[#141417] border border-[#27272a] rounded-xl">
+                <div className="inline-flex p-1 bg-[#181816] border border-[#282724] rounded-xl">
                   <button
                     onClick={() => setCompareSubTab('compare')}
                     className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
                       compareSubTab === 'compare'
-                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
-                        : 'text-[#a1a1aa] hover:text-[#ececf1]'
+                        ? 'bg-[#242320] text-amber-400 font-semibold shadow-xs'
+                        : 'text-[#a8a49c] hover:text-[#ede8e1]'
                     }`}
                   >
                     📊 Side-by-Side Comparison Matrix
@@ -672,8 +672,8 @@ export default function App() {
                     onClick={() => setCompareSubTab('lit_review')}
                     className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
                       compareSubTab === 'lit_review'
-                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
-                        : 'text-[#a1a1aa] hover:text-[#ececf1]'
+                        ? 'bg-[#242320] text-amber-400 font-semibold shadow-xs'
+                        : 'text-[#a8a49c] hover:text-[#ede8e1]'
                     }`}
                   >
                     📖 Autonomous Literature Review
@@ -693,13 +693,13 @@ export default function App() {
           {activeTab === 'gaps_viva' && (
             <div className="space-y-5 max-w-6xl mx-auto">
               <div className="flex items-center justify-center sm:justify-start">
-                <div className="inline-flex p-1 bg-[#141417] border border-[#27272a] rounded-xl">
+                <div className="inline-flex p-1 bg-[#181816] border border-[#282724] rounded-xl">
                   <button
                     onClick={() => setGapsSubTab('gaps')}
                     className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
                       gapsSubTab === 'gaps'
-                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
-                        : 'text-[#a1a1aa] hover:text-[#ececf1]'
+                        ? 'bg-[#242320] text-amber-400 font-semibold shadow-xs'
+                        : 'text-[#a8a49c] hover:text-[#ede8e1]'
                     }`}
                   >
                     🎯 Research Gaps & Novelty Analysis
@@ -708,8 +708,8 @@ export default function App() {
                     onClick={() => setGapsSubTab('viva')}
                     className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all ${
                       gapsSubTab === 'viva'
-                        ? 'bg-[#222226] text-emerald-400 font-semibold shadow-xs'
-                        : 'text-[#a1a1aa] hover:text-[#ececf1]'
+                        ? 'bg-[#242320] text-amber-400 font-semibold shadow-xs'
+                        : 'text-[#a8a49c] hover:text-[#ede8e1]'
                     }`}
                   >
                     🎓 Thesis Defense & Viva Simulator
@@ -735,34 +735,34 @@ export default function App() {
 
       {/* Paper Detail Modal */}
       {selectedPaper && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-[#141417] border border-[#27272a] rounded-2xl p-6 max-w-lg w-full space-y-5 shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-[#181816] border border-[#282724] rounded-2xl p-6 max-w-lg w-full space-y-5 shadow-2xl relative">
             <button 
               onClick={() => setSelectedPaper(null)}
-              className="absolute top-5 right-5 p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg hover:bg-[#222226]"
+              className="absolute top-5 right-5 p-1.5 text-stone-400 hover:text-stone-100 rounded-lg hover:bg-[#242320]"
             >
               ✕
             </button>
 
             <div className="space-y-1.5">
-              <span className="text-[10px] uppercase font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">
+              <span className="text-[10px] uppercase font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">
                 Document Details
               </span>
-              <h3 className="text-base font-bold text-[#f4f4f5] leading-snug">{selectedPaper.title}</h3>
-              <p className="text-[11px] font-mono text-[#71717a]">{selectedPaper.filename}</p>
+              <h3 className="text-base font-bold text-[#faf8f5] leading-snug">{selectedPaper.title}</h3>
+              <p className="text-[11px] font-mono text-[#8c887e]">{selectedPaper.filename}</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 bg-[#0e0e11] border border-[#232327] rounded-xl p-3 text-center">
+            <div className="grid grid-cols-3 gap-2 bg-[#121211] border border-[#282724] rounded-xl p-3 text-center">
               <div>
-                <div className="text-[10px] text-[#71717a] font-mono">Pages</div>
+                <div className="text-[10px] text-[#8c887e] font-mono">Pages</div>
                 <div className="text-sm font-bold text-white mt-0.5">{selectedPaper.pages}</div>
               </div>
               <div>
-                <div className="text-[10px] text-[#71717a] font-mono">Status</div>
-                <div className="text-xs font-bold text-emerald-400 mt-0.5 capitalize">{selectedPaper.status}</div>
+                <div className="text-[10px] text-[#8c887e] font-mono">Status</div>
+                <div className="text-xs font-bold text-amber-400 mt-0.5 capitalize">{selectedPaper.status}</div>
               </div>
               <div>
-                <div className="text-[10px] text-[#71717a] font-mono">Chunks</div>
+                <div className="text-[10px] text-[#8c887e] font-mono">Chunks</div>
                 <div className="text-xs font-bold text-cyan-400 mt-0.5">{selectedPaper.chunks_count || '0'}</div>
               </div>
             </div>
@@ -771,7 +771,7 @@ export default function App() {
               <button
                 onClick={() => handleIndexPaper(selectedPaper.id)}
                 disabled={indexingId === selectedPaper.id}
-                className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+                className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
               >
                 {indexingId === selectedPaper.id ? (
                   <>
@@ -791,16 +791,16 @@ export default function App() {
                     setSelectedPaper(null);
                     setPdfPaperObj(p);
                   }}
-                  className="py-2 bg-[#1f1f23] hover:bg-[#28282e] text-zinc-200 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all border border-[#2c2c31]"
+                  className="py-2 bg-[#242320] hover:bg-[#2e2d29] text-stone-200 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all border border-[#33322e]"
                 >
-                  <Eye className="h-3.5 w-3.5 text-emerald-400" /> View PDF
+                  <Eye className="h-3.5 w-3.5 text-amber-400" /> View PDF
                 </button>
 
                 <button
                   onClick={() => downloadResearchDossier(selectedPaper.id)}
-                  className="py-2 bg-[#1f1f23] hover:bg-[#28282e] text-zinc-200 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all border border-[#2c2c31]"
+                  className="py-2 bg-[#242320] hover:bg-[#2e2d29] text-stone-200 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all border border-[#33322e]"
                 >
-                  <Download className="h-3.5 w-3.5 text-purple-400" /> Export Dossier
+                  <Download className="h-3.5 w-3.5 text-amber-400" /> Export Dossier
                 </button>
               </div>
 
@@ -811,7 +811,7 @@ export default function App() {
                     setSelectedPaper(null);
                     setVectorPaperObj(p);
                   }}
-                  className="py-1.5 bg-[#18181b] hover:bg-[#222226] text-[#a1a1aa] text-[11px] rounded-lg flex items-center justify-center gap-1 transition-all border border-[#27272a]"
+                  className="py-1.5 bg-[#1c1b18] hover:bg-[#242320] text-[#a8a49c] text-[11px] rounded-lg flex items-center justify-center gap-1 transition-all border border-[#2e2d29]"
                 >
                   <Cpu className="h-3 w-3 text-cyan-400" /> Vectors
                 </button>
@@ -822,9 +822,9 @@ export default function App() {
                     setSelectedPaper(null);
                     setChunkPaperObj(p);
                   }}
-                  className="py-1.5 bg-[#18181b] hover:bg-[#222226] text-[#a1a1aa] text-[11px] rounded-lg flex items-center justify-center gap-1 transition-all border border-[#27272a]"
+                  className="py-1.5 bg-[#1c1b18] hover:bg-[#242320] text-[#a8a49c] text-[11px] rounded-lg flex items-center justify-center gap-1 transition-all border border-[#2e2d29]"
                 >
-                  <Scissors className="h-3 w-3 text-indigo-400" /> Chunks
+                  <Scissors className="h-3 w-3 text-amber-400" /> Chunks
                 </button>
 
                 <button
@@ -833,9 +833,9 @@ export default function App() {
                     setSelectedPaper(null);
                     setInspectPaper(p);
                   }}
-                  className="py-1.5 bg-[#18181b] hover:bg-[#222226] text-[#a1a1aa] text-[11px] rounded-lg flex items-center justify-center gap-1 transition-all border border-[#27272a]"
+                  className="py-1.5 bg-[#1c1b18] hover:bg-[#242320] text-[#a8a49c] text-[11px] rounded-lg flex items-center justify-center gap-1 transition-all border border-[#2e2d29]"
                 >
-                  <FileText className="h-3 w-3 text-emerald-400" /> Text
+                  <FileText className="h-3 w-3 text-amber-400" /> Text
                 </button>
               </div>
             </div>

@@ -98,17 +98,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
   };
 
   return (
-    <div className="w-full bg-[#141417] border border-[#232327] rounded-2xl p-6 shadow-md space-y-5">
+    <div className="w-full bg-[#181816] border border-[#282724] rounded-2xl p-6 shadow-md space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-[#f4f4f5] flex items-center gap-2">
-            <UploadCloud className="h-5 w-5 text-emerald-400" /> Upload Academic Papers
+          <h3 className="text-base font-semibold text-[#faf8f5] flex items-center gap-2">
+            <UploadCloud className="h-5 w-5 text-amber-400" /> Upload Academic Papers
           </h3>
-          <p className="text-xs text-[#71717a] mt-0.5">
+          <p className="text-xs text-[#8c887e] mt-0.5">
             PDFs will be parsed into text chunks, indexed in ChromaDB vector storage, and ready for grounded research chat.
           </p>
         </div>
-        <span className="text-[11px] bg-[#222226] text-[#a1a1aa] px-2.5 py-1 rounded-md font-mono border border-[#2e2e33]">
+        <span className="text-[11px] bg-[#242320] text-[#a8a49c] px-2.5 py-1 rounded-md font-mono border border-[#33322e]">
           Max 25 MB • PDF
         </span>
       </div>
@@ -122,8 +122,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         onClick={() => fileInputRef.current?.click()}
         className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 ${
           dragActive
-            ? 'border-emerald-500 bg-emerald-500/5 scale-[1.01]'
-            : 'border-[#2e2e33] hover:border-[#3f3f46] bg-[#0e0e11] hover:bg-[#121215]'
+            ? 'border-amber-500 bg-amber-500/5 scale-[1.01]'
+            : 'border-[#33322e] hover:border-[#474540] bg-[#131312] hover:bg-[#181816]'
         }`}
       >
         <input
@@ -135,28 +135,28 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
         />
 
         <div className="flex flex-col items-center justify-center space-y-3">
-          <div className="h-11 w-11 rounded-xl bg-[#1e1e24] border border-[#2c2c31] flex items-center justify-center text-emerald-400">
+          <div className="h-11 w-11 rounded-xl bg-[#242320] border border-[#33322e] flex items-center justify-center text-amber-400">
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs sm:text-sm font-medium text-[#ececf1]">
-              Drag and drop your research PDF here, or <span className="text-emerald-400 hover:underline">browse files</span>
+            <p className="text-xs sm:text-sm font-medium text-[#ede8e1]">
+              Drag and drop your research PDF here, or <span className="text-amber-400 hover:underline">browse files</span>
             </p>
-            <p className="text-[11px] text-[#71717a] mt-1">Supports IEEE, arXiv, Springer, Nature, ACM, and custom papers</p>
+            <p className="text-[11px] text-[#8c887e] mt-1">Supports IEEE, arXiv, Springer, Nature, ACM, and custom papers</p>
           </div>
         </div>
       </div>
 
       {/* Selected File Preview Box */}
       {selectedFile && (
-        <div className="bg-[#0e0e11] border border-[#2e2e33] rounded-xl p-3.5 flex items-center justify-between">
+        <div className="bg-[#131312] border border-[#33322e] rounded-xl p-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-mono font-bold text-xs">
+            <div className="h-9 w-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-mono font-bold text-xs">
               PDF
             </div>
             <div>
-              <p className="text-xs font-semibold text-[#f4f4f5] truncate max-w-sm sm:max-w-md">{selectedFile.name}</p>
-              <p className="text-[10px] text-[#71717a] font-mono">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+              <p className="text-xs font-semibold text-[#faf8f5] truncate max-w-sm sm:max-w-md">{selectedFile.name}</p>
+              <p className="text-[10px] text-[#8c887e] font-mono">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
             </div>
           </div>
 
@@ -167,7 +167,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                 setSelectedFile(null);
               }}
               disabled={uploading}
-              className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-[#222226] rounded-md transition-colors"
+              className="p-1.5 text-stone-400 hover:text-stone-200 hover:bg-[#242320] rounded-md transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -177,7 +177,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
                 handleUpload();
               }}
               disabled={uploading}
-              className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-semibold rounded-lg shadow-xs flex items-center gap-1.5 transition-all"
             >
               {uploading ? (
                 <>
@@ -201,8 +201,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onUploadSuccess }) => {
 
       {/* Success Alert */}
       {successMsg && (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 flex items-center gap-2.5 text-xs text-emerald-300">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-center gap-2.5 text-xs text-amber-300">
+          <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}

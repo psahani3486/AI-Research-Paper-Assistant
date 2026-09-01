@@ -8,12 +8,12 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #0e0e11;
-    color: #ececf1;
+    background-color: #131312;
+    color: #ede8e1;
     min-height: 100vh;
     overflow-x: hidden;
-    selection-background-color: #10a37f;
-    selection-color: #ffffff;
+    selection-background-color: #d97706;
+    selection-color: #131312;
   }
 
   code, pre {
@@ -21,7 +21,7 @@
   }
 }
 
-/* ChatGPT Sleek Scrollbar */
+/* Editorial Warm Sleek Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -32,10 +32,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(237, 232, 225, 0.12);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(237, 232, 225, 0.25);
 }
