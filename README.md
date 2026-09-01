@@ -11,7 +11,7 @@
 
 <br/>
 
-**An enterprise-grade, production-ready Retrieval-Augmented Generation (RAG) academic research intelligence platform.**
+**A production-ready Retrieval-Augmented Generation (RAG) academic research intelligence platform.**
 <br/>
 *Extract, chunk, embed, index, query with page-level citations, compare multi-paper matrices, detect research gaps, and export to LaTeX/BibTeX.*
 
